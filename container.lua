@@ -22,7 +22,10 @@ function build()
 	print("Updating...")
 	exec("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
 	print("Debian Installed.")
+	old_exec = exec
+	exec = function (cmd) return old_exec("chroot . sh -c '" .. cmd .. "'") end
 	install_container()
+	exec = old_exec
 	return 0
 end
 
