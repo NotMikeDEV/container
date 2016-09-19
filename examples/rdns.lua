@@ -5,7 +5,7 @@ function install_container()
 end
 
 function run()
-	os.execute("unbound -d")
+	exec("unbound -d")
 	return 0
 end
 
