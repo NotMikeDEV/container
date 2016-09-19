@@ -1,5 +1,7 @@
 function exec(cmd)
-	return os.execute(cmd)
+	--print ("Exec: " .. cmd)
+	ret = os.execute(cmd)
+	return ret
 end
 
 function install_container()
@@ -58,11 +60,14 @@ function IP_family(ip)
 	return nil
 end
 
-function request_IP(address)
-	network = {next=network, address=address}
+function request_IP(address, flags)
+	if not flags then flags = {} end
+	network = {next=network, address=address, flags=flags}
 end
-function request_Route(subnet)
-	network = {next=network, route=subnet}
+
+function request_Route(subnet, flags)
+	if not flags then flags = {} end
+	network = {next=network, route=subnet, flags=flags}
 end
 
 function init_network_needed()
@@ -80,9 +85,23 @@ function init_network_host(pid)
 		if (addr.address) then
 			if IP_family(addr.address) == 4 then
 				exec("ip -4 route add " .. addr.address .. "/32 dev c" .. string.format("%.0f", pid))
+				exec("iptables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
+				if (addr.flags.nat) then
+					exec("iptables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
+				end
+				if (addr.flags.proxyarp) then
+					exec("arp -i " .. addr.flags.proxyarp .. " -Ds " .. addr.address .. " " .. addr.flags.proxyarp .. " netmask 255.255.255.255 pub")
+				end
 			end
 			if IP_family(addr.address) == 6 then
 				exec("ip -6 route add " .. addr.address .. "/128 dev c" .. string.format("%.0f", pid))
+				exec("ip6tables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
+				if (addr.flags.nat) then
+					exec("ip6tables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
+				end
+				if (addr.flags.proxyarp) then
+					exec("ip -6 neigh add proxy " .. addr.address .. " dev " .. addr.flags.proxyarp)
+				end
 			end
 		end
 		if (addr.route) then

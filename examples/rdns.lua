@@ -9,8 +9,9 @@ function run()
 	return 0
 end
 
-request_IP("10.0.0.53")
-
+request_IP("10.0.0.53", {nat=true})
+request_IP("192.168.1.52", {proxyarp='eth0', nat=true})
+request_IP("192.168.1.53", {proxyarp='eth0'})
 request_IP("2001:470:3922::1:53")
 
 filesystem['/var/lib/unbound/'] = { type="map", path="data" }
