@@ -2,7 +2,8 @@
 
 function install_container()
 	exec("mkdir -p /usr/src/caddy")
-	exec("wget -O /usr/src/caddy/caddy.tar.gz --no-check-certificate \"https://caddyserver.com/download/build?os=linux&arch=amd64&features=\"")
+	install_package("ca-certificates")
+	exec("wget -O /usr/src/caddy/caddy.tar.gz \"https://caddyserver.com/download/build?os=linux&arch=amd64&features=\"")
 	exec("cd /usr/src/caddy; tar -zxf caddy.tar.gz")
 	exec("cp /usr/src/caddy/caddy /usr/bin")
 end
@@ -21,13 +22,10 @@ request_IP("fd00::3", {nat=true})
 filesystem['/var/www/'] = { type="map", path="docroot" }
 filesystem['/root/'] = { type="map", path="home" }
 config_files['/etc/Caddyfile'] = [[
-http://* http://*.* http://*.*.* http://*.*.*.* http://*.*.*.*.* {
+:80 {
 }
 
 https://caddy.notmike.uk {
-	tls {
-		max_certs 10
-	}
 }
 ]]
 
