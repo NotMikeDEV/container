@@ -35,7 +35,7 @@ function need_build()
 end
 
 function install_package(pack)
-	exec("RUNLEVEL=1 chroot " .. base_path .. ".jail apt-get install -y " .. pack)
+	exec("RUNLEVEL=1 apt-get install -y " .. pack)
 end
 
 network = nil
