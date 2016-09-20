@@ -111,7 +111,7 @@ function init_network_host(pid)
 			if IP_family(addr.route) == 4 then
 				exec("ip -4 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid))
 			elseif IP_family(addr.route) == 6 then
-				exec("ip -6 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid))
+				exec("ip -6 route add " .. addr.route .. " via fe80::2 dev c" .. string.format("%.0f", pid))
 			end
 		end
 		addr = addr.next
@@ -125,6 +125,7 @@ function init_network_child()
 	exec("ip -4 route add 100.64.0.0/32 dev uplink")
 	exec("ip -4 route add default dev uplink via 100.64.0.0")
 	exec("ip -6 route add default dev uplink via fe80::1")
+	exec("ip addr add fe80::2 dev uplink")
 	local addr = network;
 	while addr do
 		if (addr.address) then
