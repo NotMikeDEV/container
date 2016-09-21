@@ -401,14 +401,23 @@ int main (int argc, char* argv[]) {
 
 	char* container_path = dirname(strdup(filename));
 	char* container_name = filename + (strlen(container_path)+1);
+	char* lua_path = malloc(strlen(container_path)*2+100);
 	sprintf(base_directory, "%s/.%s/", container_path, container_name);
+	sprintf(lua_path, "%s/?;%s/?.lua;/etc/container/?.lua", container_path, container_path);
 
 	lua_pushstring(L, filename);
 	lua_setglobal(L, "config");
 	lua_pushstring(L, base_directory);
 	lua_setglobal(L, "base_path");
+	lua_pushstring(L, container_path);
+	lua_setglobal(L, "container_path");
 	lua_pushstring(L, root_path(L));
 	lua_setglobal(L, "root_path");
+
+	lua_getglobal( L, "package" );
+	lua_pushstring( L, lua_path);
+	lua_setfield( L, -2, "path" );
+	lua_pop( L, 1 );
 	
 	if (luaL_loadstring(L, embedded_lua) || lua_pcall(L, 0, 0, 0))
 		error(L, "cannot run container: %s",
