@@ -184,7 +184,7 @@ function mount_container()
 	ret = exec("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
 	if not ret then return 3 end
 
-	ret = exec("mkdir -p .jail/sys && mount -t sysfs sysfs .jail/sys")
+	ret = exec("mkdir -p .jail/sys && mount --bind /sys .jail/sys")
 	if not ret then return 4 end
 
 	ret = exec("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
