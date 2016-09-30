@@ -178,7 +178,7 @@ function mount_container()
 	ret = exec("mount -n -o remount --make-private / /")
 	if not ret then return 1 end
 
-	ret = exec("mkdir -p .jail && mkdir -p .filesystem && mount -n -o ro --bind .filesystem .jail")
+	ret = exec("mkdir -p .jail && mkdir -p .filesystem && mount -n -o rw --bind .filesystem .jail")
 	if not ret then return 2 end
 
 	ret = exec("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
