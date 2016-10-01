@@ -3,6 +3,7 @@
 function install_cgi()
 end
 
+pre_caddy_install_container = install_container
 function install_container()
 	exec("mkdir -p /usr/src/caddy")
 	install_package("ca-certificates")
@@ -10,6 +11,7 @@ function install_container()
 	exec("cd /usr/src/caddy; tar -zxf caddy.tar.gz")
 	exec("cp /usr/src/caddy/caddy /usr/bin")
 	install_cgi()
+	return pre_caddy_install_container()
 end
 
 function run_cgi()
