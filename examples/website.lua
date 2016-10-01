@@ -1,5 +1,4 @@
 #!/usr/sbin/container
-require("caddy")
 require("php")
 
 config_files['/etc/Caddyfile'] = [[
