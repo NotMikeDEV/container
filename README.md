@@ -21,7 +21,7 @@ Get it working
 WTFM
 
 ## Quick Overview
-This is basically a glorified wrapper around the linux namespaces functionality, which is basically “chroot on steroids”.
+This is basically a glorified wrapper around the linux namespaces functionality, which is pretty much “chroot on steroids”.
 
 It creates a virtual file system which gets mounted read-only, apart from specific directories that get mapped to folders outside the container root. When an application launches it only sees its own filesystem, PID 1 is the container host process and it won’t see processes running outside the container.
 
