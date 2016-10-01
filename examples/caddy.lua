@@ -17,7 +17,7 @@ end
 
 function run()
 	run_cgi()
-	exec("/usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile -root /var/www")
+	exec("HOME=/root /usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile -root /var/www")
 	return 0
 end
 
