@@ -247,6 +247,7 @@ int need_build(void* args)
 int start(void* args)
 {
 	child_wait("start");
+	setsid();
 
 	lua_State *L = (lua_State*)args;
 	int ret = init_environment(L, 0);
