@@ -10,7 +10,7 @@ end
 function build()
 	if isFile("/var/cache/debian.cache") then
 		print("Installing debian from cache...")
-		exec("tar -kjxf /var/cache/debian.cache")
+		exec("tar --skip-old-files -kjxf /var/cache/debian.cache")
 	else
 		print("Installing debian...")
 		exec("debootstrap  --include=iproute2,net-tools stable . http://http.debian.net/debian")
@@ -146,6 +146,20 @@ function shell()
 	return 0
 end
 
+function pairsByKeys (t, f)
+	local a = {}
+	for n in pairs(t) do table.insert(a, n) end
+	table.sort(a, f)
+	local i = 0      -- iterator variable
+	local iter = function ()   -- iterator function
+		i = i + 1
+		if a[i] == nil then return nil
+		else return a[i], t[a[i]]
+		end
+	end
+	return iter
+end
+
 function exists(name)
     if type(name)~="string" then return false end
     return os.rename(name,name) and true or false
@@ -190,8 +204,7 @@ function mount_container()
 	ret = exec("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
 	if not ret then return 5 end
 
-	table.sort(filesystem)
-	for target, mount in pairs(filesystem) do
+	for target, mount in pairsByKeys(filesystem) do
 		if mount['type'] == "tmpfs" then
 			if not isDir(".jail" .. target) then
 				exec("mkdir -p .jail" .. target)
