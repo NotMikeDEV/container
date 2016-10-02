@@ -15,6 +15,8 @@
 #define RETURN_ERROR return __LINE__
 
 static int child_run=0;
+static int* global_argc;
+static char*** global_argv;
 
 void child_wait(char* name)
 {
@@ -158,6 +160,10 @@ int is_running(lua_State *L, pid_t child)
 
 int init_environment(lua_State* L, const char writeable)
 {
+	int argx;
+	for (argx=1; argx<*global_argc; argx++)
+		memset(global_argv[0][argx], NULL, strlen(global_argv[0][argx]));
+
 	const char* container_root = base_path(L);
 	char* target = malloc(strlen(container_root) + 100);
 
@@ -370,6 +376,9 @@ extern char embedded_lua_ptr[]      asm("_binary_container_lua_start");
 extern char embedded_lua_ptr_end[]      asm("_binary_container_lua_end");
 
 int main (int argc, char* argv[]) {
+	global_argc = &argc;
+	global_argv = &argv;
+
 	char* embedded_lua = malloc(embedded_lua_ptr_end - embedded_lua_ptr + 2);
 	memcpy(embedded_lua, embedded_lua_ptr, embedded_lua_ptr_end - embedded_lua_ptr + 2);
 	
