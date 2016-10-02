@@ -16,7 +16,7 @@ function build()
 		exec("debootstrap  --include=iproute2,net-tools stable . http://http.debian.net/debian")
 		if isFile("etc/debian_version") then
 			print("Creating cache...")
-			exec("tar -jcf /var/cache/debian.cache *")
+			exec("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
 		end
 	end
 	print("Updating...")
