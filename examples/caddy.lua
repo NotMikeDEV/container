@@ -17,17 +17,37 @@ end
 function run_cgi()
 end
 
+websites={}
+websites[':8080']={}
+
+function caddy_config(settings)
+	return ""
+end
+
+pre_caddy_apply_config=apply_config
+function apply_config()
+	file = io.open("/etc/Caddyfile", "w")
+	if not file then return 1 end
+	io.output(file)
+	for host, settings in pairsByKeys(websites) do
+		io.write(host .. " {\n")
+		if not settings.root then settings.root = "/var/www" end
+		io.write("\troot " .. settings.root .. "\n")
+		io.write(caddy_config(settings))
+		io.write("\n}\n\n")
+	end
+	io.close(file)
+	return pre_caddy_apply_config()
+end
+
 function run()
 	run_cgi()
-	exec("HOME=/root /usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile -root /var/www")
+	exec("HOME=/root /usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile")
 	return 0
 end
 
 filesystem['/var/www/'] = { type="map", path="docroot" }
 filesystem['/root/'] = { type="map", path="home" }
-config_files['/etc/Caddyfile'] = [[
-:80
-]]
 
 config_files['/var/www/index.html'] = [[
 <h1>Welcome!</h1>

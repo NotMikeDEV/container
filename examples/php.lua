@@ -16,14 +16,15 @@ function run_cgi()
 end
 
 filesystem['/var/log/'] = { type="map", path="log" }
+filesystem['/var/run/'] = { type="map", path=".run" }
 filesystem['/var/lib/php5/sessions'] = { type="tmpfs", size="512M" }
 filesystem['/var/www/'] = { type="map", path="docroot" }
 filesystem['/root/'] = { type="map", path="home" }
-config_files['/etc/Caddyfile'] = [[
-:80 {
-	fastcgi / /var/run/php5-fpm.sock php
-}
-]]
+
+pre_php_caddy_config=caddy_config
+function caddy_config(settings)
+	return "\tfastcgi / /var/run/php5-fpm.sock php {\n\t\tenv PATH /bin\n\t}\n" .. pre_php_caddy_config(settings)
+end
 
 config_files['/var/www/index.php'] = [[
 <?php phpinfo(); ?>
