@@ -10,7 +10,7 @@ end
 function build()
 	if isFile("/var/cache/debian.cache") then
 		print("Installing debian from cache...")
-		exec("tar -jxf /var/cache/debian.cache")
+		exec("tar -kjxf /var/cache/debian.cache")
 	else
 		print("Installing debian...")
 		exec("debootstrap  --include=iproute2,net-tools stable . http://http.debian.net/debian")
