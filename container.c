@@ -11,6 +11,7 @@
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
+#include <fcntl.h>
 
 #define RETURN_ERROR return __LINE__
 
@@ -162,7 +163,7 @@ int init_environment(lua_State* L, const char writeable)
 {
 	int argx;
 	for (argx=1; argx<*global_argc; argx++)
-		memset(global_argv[0][argx], NULL, strlen(global_argv[0][argx]));
+		memset(global_argv[0][argx], 0, strlen(global_argv[0][argx]));
 
 	const char* container_root = base_path(L);
 	char* target = malloc(strlen(container_root) + 100);
@@ -254,6 +255,15 @@ int start(void* args)
 {
 	child_wait("start");
 	setsid();
+	unlink("../console");
+	if (mknod("../console", 010755, 0) < 0)
+		RETURN_ERROR;
+	int fd;
+	if (( fd = open("../console", O_RDWR )) < 0)
+		RETURN_ERROR;
+	dup2(fd, 0);
+	dup2(fd, 1);
+	dup2(fd, 2);
 
 	lua_State *L = (lua_State*)args;
 	int ret = init_environment(L, 0);
