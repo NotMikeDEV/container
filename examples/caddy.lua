@@ -40,10 +40,11 @@ function apply_config()
 	return pre_caddy_apply_config()
 end
 
+pre_caddy_run=run
 function run()
 	run_cgi()
-	exec("HOME=/root /usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile")
-	return 0
+	exec("HOME=/root /usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile &")
+	return pre_caddy_run()
 end
 
 filesystem['/var/www/'] = { type="map", path="docroot" }

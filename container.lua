@@ -137,7 +137,6 @@ function init_network_child()
 end
 
 function run()
-	exec("init")
 	return 0
 end
 

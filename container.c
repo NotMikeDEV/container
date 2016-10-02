@@ -285,7 +285,14 @@ int start(void* args)
 		printf("Error %d making container read only\n", ret);
 		return ret;
 	}
-	return lua_exec_callback("run", L);
+	ret = lua_exec_callback("run", L);
+	if (ret)
+	{
+		printf("Error %d starting container\n", ret);
+		return ret;
+	}
+	while (1)sleep(1);
+	return 0;
 }
 
 int shell(void* args)
