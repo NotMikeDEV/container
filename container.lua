@@ -190,6 +190,7 @@ function mount_container()
 	ret = exec("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
 	if not ret then return 5 end
 
+	table.sort(filesystem)
 	for target, mount in pairs(filesystem) do
 		if mount['type'] == "tmpfs" then
 			if not isDir(".jail" .. target) then
