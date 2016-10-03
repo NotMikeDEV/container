@@ -8,21 +8,24 @@ function install_container()
 end
 
 function build()
-	if isFile("/var/cache/debian.cache") then
-		print("Installing debian from cache...")
-		exec("tar --skip-old-files -kjxf /var/cache/debian.cache")
-	else
-		print("Installing debian...")
+	if not isFile("/var/cache/debian.cache") then
+		print("Building debian cache...")
 		local f = assert(io.popen("uname -m", 'r'))
 		arch = assert(f:read('*a'))
 		f:close()
 		if string.find(arch, "x86_64") then arch = "amd64" end
-		exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
+		exec("mkdir ../.debootstrap")
+		exec("cd ../.debootstrap")
+		ret = exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
 		if isFile("etc/debian_version") then
-			print("Creating cache...")
+			print("Saving cache...")
 			exec("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
 		end
+		exec("cd ../.jail")
+		exec("rm -rf ../.debootstrap")
 	end
+	print("Installing debian from cache...")
+	exec("tar --skip-old-files -kjxf /var/cache/debian.cache")
 	print("Updating...")
 	exec("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
 	print("Debian Installed.")
