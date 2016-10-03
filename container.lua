@@ -13,7 +13,7 @@ function build()
 		exec("tar --skip-old-files -kjxf /var/cache/debian.cache")
 	else
 		print("Installing debian...")
-		exec("debootstrap  --include=iproute2,net-tools stable . http://http.debian.net/debian")
+		exec("debootstrap  --include=iproute2,net-tools --arch=`uname -m` stable . http://http.debian.net/debian")
 		if isFile("etc/debian_version") then
 			print("Creating cache...")
 			exec("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
