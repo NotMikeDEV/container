@@ -14,14 +14,14 @@ function build()
 		arch = assert(f:read('*a'))
 		f:close()
 		if string.find(arch, "x86_64") then arch = "amd64" end
-		exec("mkdir ../.debootstrap")
-		exec("cd ../.debootstrap")
+		mkdir("../.debootstrap")
+		chdir("../.debootstrap")
 		ret = exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
 			exec("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
 		end
-		exec("cd ../.jail")
+		chdir("../.jail")
 		exec("rm -rf ../.debootstrap")
 	end
 	print("Installing debian from cache...")

@@ -27,6 +27,54 @@ void child_wait(char* name)
 	}
 }
 
+/* -- pathname/nil error */
+static int ex_currentdir(lua_State *L)
+{
+  char pathname[PATH_MAX + 1];
+  if (!getcwd(pathname, sizeof pathname))
+    return 0;
+  lua_pushstring(L, pathname);
+  return 1;
+}
+
+/* pathname -- true/nil error */
+static int ex_chdir(lua_State *L)
+{
+  const char *pathname = luaL_checkstring(L, 1);
+  if (-1 == chdir(pathname))
+    return 0;
+  lua_pushboolean(L, 1);
+  return 1;
+}
+
+/* pathname -- true/nil error */
+static int ex_mkdir(lua_State *L)
+{
+  const char *pathname = luaL_checkstring(L, 1);
+  if (-1 == mkdir(pathname, 0777))
+    return 0;
+  lua_pushboolean(L, 1);
+  return 1;
+}
+
+const void* lua_functions[][2] = {
+    {"chdir",      ex_chdir},
+    {"mkdir",      ex_mkdir},
+    {"cwd",      ex_currentdir},
+{0,0} };
+void register_lua_functions(lua_State *L)
+{
+	int x=0;
+	while (lua_functions[x] && lua_functions[x][0])
+	{
+		const void *name = lua_functions[x][0];
+		const void *function = lua_functions[x][1];
+		x++;
+		lua_pushcfunction(L, function);
+		lua_setglobal(L, name);
+	}
+}
+
 int lua_exec_callback(const char* function, lua_State *L)
 {
 	/* push functions and arguments */
@@ -411,6 +459,8 @@ int main (int argc, char* argv[]) {
 
 	lua_State *L = luaL_newstate();   /* opens Lua */
 	luaL_openlibs(L);
+	register_lua_functions(L);
+
 	if (argc < 2)
 	{
 		print_usage(NULL);
