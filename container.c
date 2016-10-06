@@ -8,6 +8,9 @@
 #include <time.h>
 #include <sys/mount.h>
 #include <sys/ptrace.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
@@ -301,25 +304,47 @@ int need_build(void* args)
 
 int start(void* args)
 {
+	lua_State *L = (lua_State*)args;
+	int fd;
+
+	setpgid(getpid(), 0); 
 	child_wait("start");
 	setsid();
 	unlink("../console");
 	if (mknod("../console", 010755, 0) < 0)
 		RETURN_ERROR;
-	int fd;
 	if (( fd = open("../console", O_RDWR )) < 0)
 		RETURN_ERROR;
 	dup2(fd, 0);
 	dup2(fd, 1);
 	dup2(fd, 2);
 
-	lua_State *L = (lua_State*)args;
 	int ret = init_environment(L, 0);
 	if (ret)
 		return ret;
 	ret = init_network_child(L);
 	if (ret)
 		return ret;
+
+	int shell_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	char* sock_path = "../.shell";
+
+	unlink(sock_path);
+	struct sockaddr_un addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, sock_path, sizeof(addr.sun_path)-1);
+	if (bind(shell_sock, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+	{
+		perror("bind");
+		RETURN_ERROR;
+	}
+	if (listen(shell_sock, 5) == -1)
+	{
+		perror("listen");
+		RETURN_ERROR;
+	}
+
 	chroot(".");
 	ret = lua_exec_callback("apply_config", L);
 	if (ret)
@@ -339,29 +364,81 @@ int start(void* args)
 		printf("Error %d starting container\n", ret);
 		return ret;
 	}
-	while (1)sleep(1);
+
+	while (1)
+	{
+		int csock;
+		if ( (csock = accept( shell_sock, NULL, NULL )) == -1) sleep(1);
+		int cpid = fork();
+		if (cpid < 0) RETURN_ERROR;
+		if (cpid && csock != -1)
+		{
+			close(csock);
+		}
+		else if (csock != -1)
+		{
+			close(shell_sock);
+			dup2(csock, 0);
+			dup2(csock, 1);
+			dup2(csock, 2);
+			close(csock);
+			char* args[] = {"bash",NULL};
+			ret = lua_exec_callback("shell", L);
+			close(0);
+			close(1);
+			close(2);
+			exit(0);
+		}
+	}
+	close(shell_sock);
 	return 0;
 }
 
 int shell(void* args)
 {
-	child_wait("shell");
-
 	lua_State *L = (lua_State*)args;
-	int ret = init_environment(L, 0);
-	if (ret)
-		return ret;
-	ret = init_network_child(L);
-	if (ret)
-		return ret;
-	chroot(".");
-	ret = lua_exec_callback("apply_config", L);
-	if (ret)
+
+	int shell_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	const char* container_root = base_path(L);
+	char* sock_path = malloc(strlen(container_root) + 100);
+	sprintf(sock_path, "%s/.shell", container_root);
+
+	struct sockaddr_un addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, sock_path, sizeof(addr.sun_path)-1);
+	if (connect(shell_sock, (struct sockaddr*)&addr, sizeof(addr)) == -1)
 	{
-		printf("Error %d applying config\n", ret);
-		return ret;
+		perror("connect");
 	}
-	return lua_exec_callback("shell", L);
+	while (1)
+	{
+		char* buff[1024];
+		fd_set fds;
+		FD_ZERO(&fds);
+		FD_SET(shell_sock, &fds);
+		FD_SET(fileno(stdin), &fds);
+		select(shell_sock+1, &fds, NULL, NULL, NULL); 
+
+		if (FD_ISSET(fileno(stdin), &fds)){
+			memset(buff, 0, sizeof(buff));
+			int len = read(fileno(stdin), buff, sizeof(buff));
+			if (len > 0)
+				write(shell_sock, buff, len);
+			else
+				return 0;
+		}
+		if (FD_ISSET(shell_sock, &fds)){
+			memset(buff, 0, sizeof(buff));
+			int len = read(shell_sock, buff, sizeof(buff));
+			if (len > 0)
+				write(fileno(stdin), buff, len);
+			else
+				return 0;
+		}
+	}
+	sleep(5);
+	return 0;
 }
 
 void print_usage(const char* config_file)
@@ -427,14 +504,22 @@ void sig_handler(int sig)
 	{
 		child_run=1;
 	}
+	else if (sig == SIGCHLD)
+	{
+		int status;
+		waitpid(-1, &status, WNOHANG);
+	}
 	else
 	{
 		if (container_pid)
 		{
-			kill(container_pid, SIGKILL);
+			kill(container_pid, sig);
 		}
-		exit(-1);
 	}
+	if (sig == SIGINT || sig == SIGTERM || sig == SIGKILL)
+		exit(-1);
+	signal(sig, sig_handler);
+	return;
 }
 
 extern char embedded_lua_ptr[]      asm("_binary_container_lua_start");
@@ -447,10 +532,13 @@ int main (int argc, char* argv[]) {
 	char* embedded_lua = malloc(embedded_lua_ptr_end - embedded_lua_ptr + 2);
 	memcpy(embedded_lua, embedded_lua_ptr, embedded_lua_ptr_end - embedded_lua_ptr + 2);
 	
+	signal(SIGCHLD, sig_handler);
+	signal(SIGTERM, sig_handler);
 	signal(SIGKILL, sig_handler);
 	signal(SIGABRT, sig_handler);
 	signal(SIGINT, sig_handler);
 	signal(SIGUSR2, sig_handler);
+	signal(SIGUSR1, sig_handler);
 	char command[PATH_MAX];
 	char filename[PATH_MAX];
 	char base_directory[PATH_MAX];
@@ -563,18 +651,14 @@ int main (int argc, char* argv[]) {
 	}
 	if (!ret && !strcmp(command, "shell"))
 	{
-		if (is_running(L, 0))
+		if (!is_running(L, 0))
 		{
-			printf("Container already running.\n");
+			printf("Error: Container not running.\n");
 			RETURN_ERROR;
 		}
-		if (need_build(L))
-		{
-			printf("Error: Container not built.\n");
-			RETURN_ERROR;
-		}
-		printf("Launching Shell\n");
-		ISOLATE(shell, L);
+		ret = shell(L);
+		if (ret)
+			return ret;
 		done_something = 1;
 	}
 	if (!ret && !done_something)
