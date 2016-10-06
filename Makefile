@@ -26,6 +26,11 @@ clean:
 
 install: container
 	cp container ${INSTALL_PATH}
+	mkdir -p /etc/container/templates/
+	cp -R examples/templates/* /etc/container/templates/
+
+install_examples: install
+	cp -R examples/* /etc/container/
 
 src: container-src.tar.gz
 

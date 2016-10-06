@@ -11,12 +11,12 @@ function build()
 	if not isFile("/var/cache/debian.cache") then
 		print("Building debian cache...")
 		local f = assert(io.popen("uname -m", 'r'))
-		arch = assert(f:read('*a'))
+		local arch = assert(f:read('*a'))
 		f:close()
 		if string.find(arch, "x86_64") then arch = "amd64" end
 		mkdir("../.debootstrap")
 		chdir("../.debootstrap")
-		ret = exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
+		exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
 			exec("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
@@ -33,16 +33,19 @@ function build()
 	exec = function (cmd) return old_exec("chroot . sh -c '" .. cmd .. "'") end
 	install_container()
 	exec = old_exec
+	write_file("../.built")
 	return 0
 end
 
 function need_build()
-	if not isFile(base_path .. ".filesystem/bin") then return 1 end
+	if not isFile(base_path .. ".built") then return 1 end
 	return 0
 end
 
 function install_package(pack)
-	exec("RUNLEVEL=1 apt-get install -y " .. pack)
+	local ret = exec("RUNLEVEL=1 apt-get install -y " .. pack)
+	if not ret then return 1 end
+	return 0
 end
 
 network = nil
@@ -144,6 +147,7 @@ function init_network_child()
 end
 
 function run()
+	print("Launching container.")
 	return 0
 end
 
@@ -195,7 +199,7 @@ filesystem = {}
 filesystem["/tmp"] = { type="tmpfs", size="2G" }
 filesystem["/run"] = { type="tmpfs", size="128M" }
 function mount_container()
-	ret = exec("mount -n -o remount --make-private / /")
+	local ret = exec("mount -n -o remount --make-private / /")
 	if not ret then return 1 end
 
 	ret = exec("mkdir -p .jail && mkdir -p .filesystem && mount -n -o rw --bind .filesystem .jail")
@@ -234,20 +238,53 @@ function mount_container()
 end
 
 function lock_container()
-	ret = exec("mount -n -o remount,ro --bind / /")
+	local ret = exec("mount -n -o remount,ro --bind / /")
 	if not ret then return 1 end
 	return 0
+end
+
+function write_file(filename, contents)
+	file = io.open(filename, "w")
+	if not file then return 1 end
+	io.output(file)
+	io.write(contents)
+	io.close(file)
 end
 
 config_files = {}
 function apply_config()
 	for target, content in pairs(config_files) do
 		exec("mkdir -p " .. dirname(target))
-		file = io.open(target, "w")
-		if not file then return 1 end
-		io.output(file)
-		io.write(content)
-		io.close(file)
+		write_file(target, content)
 	end
 	return 0
+end
+
+function table.clone(org)
+	local new = {}
+	for name, value in pairs(org) do
+		new[name] = value
+	end
+	return new
+end
+
+function prepend_functions(target, source)
+	for name, sourcefunc in pairs(source) do
+		if type(source[name]) == "function" and type(target[name]) == "function" and source[name] ~= target[name] then
+			local previousfunc = target[name]
+			target[name] = function (...)
+				local ret = sourcefunc(...)
+				if ret ~= 0 then return ret end
+				return previousfunc(...)
+			end
+		end
+	end
+end
+
+-- casts a spell on the require() function to give it magic function inheritance
+include = require
+function require(modulename)
+	local before_ENV = table.clone(_ENV)
+	include(modulename)
+	prepend_functions(_ENV, before_ENV)
 end
