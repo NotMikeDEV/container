@@ -30,7 +30,7 @@ function install_container()
 	exec("apt-get update")
 	install_package("owncloud-files")
 	print("Saving cache...")
-	exec("cd /var/www/owncloud; tar -jcf /var/cache/owncloud.cache *")
+	exec("cd ./var/www/owncloud/; tar -jcf ../../../var/cache/owncloud.cache *")
 	if mysql and mysql.password then
 		exec('mkdir /var/run/mysqld/ ; chmod 0777 /var/run/mysqld/; mysqld & sleep 5')
 		exec('mysql -uroot -p"' .. mysql.password .. '" -e "CREATE DATABASE owncloud;"')
@@ -39,10 +39,11 @@ function install_container()
 		if path ~= "/var/www/owncloud/" and path ~= "/var/www/owncloud" then
 			print("Installing ownCloud in " .. path)
 			exec("mkdir -p ./" .. path)
-			exec("cd ./" .. path .."; tar --skip-old-files -kjxf /var/cache/owncloud.cache")
+			exec("tar --skip-old-files -kjxf ./var/cache/owncloud.cache -C " .. path)
 			exec("chown www-data:www-data -R ./" .. path)
 		end
 	end
+	return 0
 end
 
 if not filesystem['/owncloud/'] then filesystem['/owncloud/'] = { type="map", path="owncloud" } end
