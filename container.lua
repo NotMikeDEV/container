@@ -5,6 +5,7 @@ function exec(cmd)
 end
 
 function install_container()
+	return 0
 end
 
 function build()
