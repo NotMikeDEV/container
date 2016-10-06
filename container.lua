@@ -32,10 +32,10 @@ function build()
 	print("Debian Installed.")
 	old_exec = exec
 	exec = function (cmd) return old_exec("chroot . sh -c '" .. cmd .. "'") end
-	install_container()
+	local ret = install_container()
 	exec = old_exec
 	write_file("../.built")
-	return 0
+	return ret
 end
 
 function need_build()
@@ -153,7 +153,8 @@ function run()
 end
 
 function shell()
-	exec("bash")
+	print("Launching shell.")
+	exec("sh")
 	return 0
 end
 
