@@ -99,7 +99,7 @@ int lua_exec_callback(const char* function, lua_State *L)
 		lua_pop(L, 1);
 		RETURN_ERROR;
 	}
-	double z = lua_tonumber(L, -1);
+	int z = lua_tonumber(L, -1);
 	lua_pop(L, 1);  /* pop returned value */
 	return z;
 }
@@ -127,7 +127,7 @@ int lua_exec_callback_arg(const char* function, lua_State *L, int arg)
 		lua_pop(L, 1);
 		RETURN_ERROR;
 	}
-	double z = lua_tonumber(L, -1);
+	int z = lua_tonumber(L, -1);
 	lua_pop(L, 1);  /* pop returned value */
 	return z;
 }
@@ -318,7 +318,6 @@ int start(void* args)
 		RETURN_ERROR;
 	if (( fd = open("../console", O_RDWR )) < 0)
 		RETURN_ERROR;
-	dup2(fd, 0);
 	dup2(fd, 1);
 	dup2(fd, 2);
 

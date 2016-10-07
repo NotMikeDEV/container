@@ -1,5 +1,5 @@
 function exec(cmd)
-	if debug_enabled or debug_exec then print('exec("' .. cmd .. ')"') end
+	if debug_enabled or debug_exec then print('exec("' .. cmd .. '")') end
 	ret = os.execute(cmd)
 	retval = ret
 	if retval == nil then retval = 'nil' end
