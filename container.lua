@@ -1,15 +1,19 @@
 function exec(cmd)
 	if debug_enabled or debug_exec then print('exec("' .. cmd .. ')"') end
 	ret = os.execute(cmd)
-	if (debug_enabled or debug_exec) and ret then print('Returned ' .. ret) end
+	retval = ret
+	if retval == nil then retval = 'nil' end
+	if debug_enabled or debug_exec then print('Returned', retval) end
 	return ret
 end
 
 function install_container()
+	if debug_enabled then print("install_container()") end
 	return 0
 end
 
 function build()
+	if debug_enabled then print("build()") end
 	if not isFile("/var/cache/debian.cache") then
 		print("Building debian cache...")
 		local f = assert(io.popen("uname -m", 'r'))
@@ -45,8 +49,9 @@ function need_build()
 end
 
 function install_package(pack)
+	if debug_enabled then print('install_package("' .. pack .. '")') end
 	local ret = exec("RUNLEVEL=1 apt-get install -y " .. pack)
-	if not ret then return 1 end
+	if not ret then return ret end
 	return 0
 end
 
@@ -76,11 +81,13 @@ function IP_family(ip)
 end
 
 function request_IP(address, flags)
+	if debug_enabled then print('request_IP("' .. address .. '", ...)') end
 	if not flags then flags = {} end
 	network = {next=network, address=address, flags=flags}
 end
 
 function request_Route(subnet, flags)
+	if debug_enabled then print('request_Route("' .. subnet .. '", ...)') end
 	if not flags then flags = {} end
 	network = {next=network, route=subnet, flags=flags}
 end
@@ -202,6 +209,8 @@ filesystem = {}
 filesystem["/tmp"] = { type="tmpfs", size="2G" }
 filesystem["/run"] = { type="tmpfs", size="128M" }
 function mount_container()
+	if debug_enabled then print('mount_container()') end
+
 	local ret = exec("mount -n -o remount --make-private / /")
 	if not ret then return 1 end
 
@@ -241,12 +250,15 @@ function mount_container()
 end
 
 function lock_container()
+	if debug_enabled then print('lock_container()') end
+
 	local ret = exec("mount -n -o remount,ro --bind / /")
 	if not ret then return 1 end
 	return 0
 end
 
 function write_file(filename, contents)
+	if debug_enabled then print('write_file("' .. filename .. '", ... )') end
 	file = io.open(filename, "w")
 	if not file then return 1 end
 	io.output(file)
@@ -256,6 +268,7 @@ end
 
 config_files = {}
 function apply_config()
+	if debug_enabled then print('apply_config()') end
 	for target, content in pairs(config_files) do
 		exec("mkdir -p " .. dirname(target))
 		write_file(target, content)
@@ -287,6 +300,7 @@ end
 -- casts a spell on the require() function to give it magic function inheritance
 include = require
 function require(modulename)
+	if debug_enabled then print('require("' .. modulename .. '")') end
 	local before_ENV = table.clone(_ENV)
 	include(modulename)
 	prepend_functions(_ENV, before_ENV)
