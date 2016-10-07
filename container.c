@@ -291,7 +291,7 @@ int build(void* args)
 	if (ret)
 		return ret;
 	ret = lua_exec_callback("build", L);
-	if (ret && need_build(L))
+	if (ret)
 		return ret;
 	return 0;
 }

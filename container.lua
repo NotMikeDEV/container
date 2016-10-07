@@ -1,6 +1,6 @@
 function exec(cmd)
 	if debug_enabled or debug_exec then print('exec("' .. cmd .. '")') end
-	ret = os.execute(cmd)
+	local ret = os.execute(cmd)
 	retval = ret
 	if retval == nil then retval = 'nil' end
 	if debug_enabled or debug_exec then print('Returned', retval) end
@@ -39,7 +39,7 @@ function build()
 	exec = function (cmd) return old_exec("chroot . sh -c '" .. cmd .. "'") end
 	local ret = install_container()
 	exec = old_exec
-	write_file("../.built")
+	write_file("../.built", "")
 	return ret
 end
 
@@ -284,14 +284,17 @@ function table.clone(org)
 	return new
 end
 
-function prepend_functions(target, source)
+function prepend_functions(target, source, modulename)
 	for name, sourcefunc in pairs(source) do
 		if type(source[name]) == "function" and type(target[name]) == "function" and source[name] ~= target[name] then
 			local previousfunc = target[name]
 			target[name] = function (...)
 				local ret = sourcefunc(...)
 				if ret ~= 0 then return ret end
-				return previousfunc(...)
+				if debug_enabled then print("Calling " .. name .. "() from " .. modulename) end
+				ret = previousfunc(...)
+				if debug_enabled then print(name .. "() from " .. modulename .. " returned " .. ret) end
+				return ret
 			end
 		end
 	end
@@ -303,5 +306,5 @@ function require(modulename)
 	if debug_enabled then print('require("' .. modulename .. '")') end
 	local before_ENV = table.clone(_ENV)
 	include(modulename)
-	prepend_functions(_ENV, before_ENV)
+	prepend_functions(_ENV, before_ENV, modulename)
 end
