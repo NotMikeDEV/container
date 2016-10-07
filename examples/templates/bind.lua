@@ -1,5 +1,3 @@
-#!/usr/sbin/container
-
 bind = {}
 
 function bind:AllowRecursion(ip)

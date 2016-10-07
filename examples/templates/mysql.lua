@@ -1,5 +1,3 @@
-#!/usr/sbin/container
-
 mysql={databases={}}
 mysql.password="notdefined"
 

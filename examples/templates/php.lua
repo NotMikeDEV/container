@@ -1,5 +1,3 @@
-#!/usr/sbin/container
-
 php={}
 
 function install_container()

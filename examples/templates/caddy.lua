@@ -1,5 +1,3 @@
-#!/usr/sbin/container
-
 caddy={}
 caddy.config = {}
 

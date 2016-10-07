@@ -1,5 +1,3 @@
-#!/usr/sbin/container
-
 nat64={}
 nat64.ipv4="100.64.64.64"
 nat64.prefix="64:ff9b::/96"

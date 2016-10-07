@@ -1,5 +1,3 @@
-#!/usr/sbin/container
-
 owncloud={}
 owncloud.instances={}
 
