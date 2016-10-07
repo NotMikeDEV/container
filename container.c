@@ -290,7 +290,10 @@ int build(void* args)
 		ret = init_network_child(L);
 	if (ret)
 		return ret;
-	return lua_exec_callback("build", L);
+	ret = lua_exec_callback("build", L);
+	if (ret && need_build(L))
+		return ret;
+	return 0;
 }
 
 int need_build(void* args)
@@ -592,7 +595,23 @@ int main (int argc, char* argv[]) {
 			lua_tostring(L, -1));
 	char done_something=0;
 	int ret=0;
-	if (!ret && !strcmp(command, "clean") || !strcmp(command, "build"))
+	if (!ret && (!strcmp(command, "restart") || !strcmp(command, "stop") || (!strcmp(command, "scbs") && is_running(L, get_container_pid(L)))))
+	{
+		pid_t pid = get_container_pid(L);
+		time_t start = time(NULL);
+		while (pid && !kill(pid, SIGKILL) && start > time(NULL) - 10)
+		{
+			usleep(100000);
+		}
+		if (is_running(L, pid))
+		{
+			printf("Unable to stop container.\n");
+			RETURN_ERROR;
+		}
+		printf("Container terminated.\n");
+		done_something = 1;
+	}
+	if (!ret && (!strcmp(command, "clean") || !strcmp(command, "build") || !strcmp(command, "scbs")))
 	{
 		if (is_running(L, 0))
 		{
@@ -612,23 +631,7 @@ int main (int argc, char* argv[]) {
 		ret = ISOLATE(build, L);
 		done_something = 1;
 	}
-	if (!ret && !strcmp(command, "restart") || !strcmp(command, "stop"))
-	{
-		pid_t pid = get_container_pid(L);
-		time_t start = time(NULL);
-		while (pid && !kill(pid, SIGKILL) && start > time(NULL) - 10)
-		{
-			usleep(100000);
-		}
-		if (is_running(L, pid))
-		{
-			printf("Unable to stop container.\n");
-			RETURN_ERROR;
-		}
-		printf("Container terminated.\n");
-		done_something = 1;
-	}
-	if (!ret && !strcmp(command, "restart") || !strcmp(command, "start"))
+	if (!ret && (!strcmp(command, "restart") || !strcmp(command, "start") || !strcmp(command, "scbs")))
 	{
 		if (is_running(L, 0))
 		{
@@ -637,7 +640,7 @@ int main (int argc, char* argv[]) {
 		}
 		if (need_build(L))
 		{
-			printf("Container needs to be built first.\n");
+			printf("Container needs to be built.\n");
 			ret = ISOLATE(build, L);
 			if (ret)
 				return ret;
