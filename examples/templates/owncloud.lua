@@ -40,11 +40,12 @@ function apply_config()
 			if ret then print("Created MySQL Database " .. instance.mysql.database) end
 		end
 	end
+	return 0
 end
 
 function install_container()
 	print("Installing ownCloud.")
-	write_file("/etc/apt/sources.list.d/owncloud.list", "deb http://download.owncloud.org/download/repositories/9.0/Debian_8.0/ /")
+	write_file("./etc/apt/sources.list.d/owncloud.list", "deb http://download.owncloud.org/download/repositories/9.0/Debian_8.0/ /")
 	install_package("ca-certificates")
 	exec("wget -nv https://download.owncloud.org/download/repositories/9.0/Debian_8.0/Release.key -O /dev/stdout -o /dev/null | apt-key add - ")
 	exec("apt-get update")
