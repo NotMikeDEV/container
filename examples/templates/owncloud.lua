@@ -17,9 +17,20 @@ function owncloud:Instance(website)
 	website.redirects['/.well-known/carddav'] = {source='/.well-known/carddav', target='/remote.php/carddav', status=301}
 	website.redirects['/.well-known/caldav'] = {source='/.well-known/caldav', target='/remote.php/caldav', status=301}
 
-	owncloud.instances[website.root] = owncloud.instances
+	owncloud.instances[website.root] = website
 	
 	return website
+end
+
+function apply_config()
+	for path, instance in pairs(owncloud.instances) do
+		if not file_exists(path .. '/index.php' then
+			print("Installing ownCloud in " .. path)
+			exec("mkdir -p ./" .. path)
+			exec("tar --skip-old-files -xf ./var/cache/owncloud.cache -C ./" .. path)
+			exec("chown www-data:www-data -R ./" .. path)
+		end
+	end
 end
 
 function install_container()
@@ -30,18 +41,10 @@ function install_container()
 	exec("apt-get update")
 	install_package("owncloud-files")
 	print("Saving cache...")
-	exec("cd ./var/www/owncloud/; tar -jcf ../../../var/cache/owncloud.cache *")
+	exec("cd ./var/www/owncloud/; tar -cf ../../../var/cache/owncloud.cache *")
 	if mysql and mysql.password then
 		exec('mkdir /var/run/mysqld/ ; chmod 0777 /var/run/mysqld/; mysqld & sleep 5')
 		exec('mysql -uroot -p"' .. mysql.password .. '" -e "CREATE DATABASE owncloud;"')
-	end
-	for path, instance in pairs(owncloud.instances) do
-		if path ~= "/var/www/owncloud/" and path ~= "/var/www/owncloud" then
-			print("Installing ownCloud in " .. path)
-			exec("mkdir -p ./" .. path)
-			exec("tar --skip-old-files -kjxf ./var/cache/owncloud.cache -C " .. path)
-			exec("chown www-data:www-data -R ./" .. path)
-		end
 	end
 	return 0
 end
