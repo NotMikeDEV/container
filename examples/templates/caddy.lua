@@ -38,7 +38,7 @@ function caddy.generate_config(website)
 	end
 	if website.rewrites then
 		for source, rewrite in pairsByKeys(website.rewrites) do
-			config = config .. "\trewrite " .. source .. " " .. rewrite.target .. "\n"
+			config = config .. "\trewrite {\n\t\tregexp\t" .. source .. "\n\t\tto\t" .. rewrite.target .. "\n\t}\n"
 		end
 	end
 	if caddy.config.fastcgi then

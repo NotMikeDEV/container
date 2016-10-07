@@ -33,10 +33,10 @@ function apply_config()
 		end
 		if instance.mysql then
 			if mysql and not mysql.running then
-				exec('mkdir /var/run/mysqld/ ; chmod 0777 /var/run/mysqld/; mysqld & sleep 5')
+				exec('mkdir /var/run/mysqld/ ; chmod 0777 /var/run/mysqld/; mysqld & sleep 3 2>&1 >/dev/null')
 				mysql.running = true
 			end
-			local ret = exec('mysql -uroot -p"' .. mysql.password .. '" -e "CREATE DATABASE ' .. instance.mysql.database .. ';"')
+			local ret = exec('mysql -uroot -p"' .. mysql.password .. '" -e "CREATE DATABASE ' .. instance.mysql.database .. ';"2>&1 >/dev/null')
 			if ret then print("Created MySQL Database " .. instance.mysql.database) end
 		end
 	end
