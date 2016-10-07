@@ -257,6 +257,21 @@ function lock_container()
 	return 0
 end
 
+function read_file(filename)
+	if debug_enabled then print('read_file("' .. filename .. '")') end
+	local contents = ""
+	file = io.open(filename, "r")
+	if not file then return nil end
+	io.input(file)
+	while true do
+		local block = io.read(1024*1024)
+		if not block then break end
+		contents = contents .. block
+    end
+	io.close(file)
+	return block
+end
+
 function write_file(filename, contents)
 	if debug_enabled then print('write_file("' .. filename .. '", ... )') end
 	file = io.open(filename, "w")
@@ -264,6 +279,7 @@ function write_file(filename, contents)
 	io.output(file)
 	io.write(contents)
 	io.close(file)
+	return 0
 end
 
 config_files = {}
