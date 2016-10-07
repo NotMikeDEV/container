@@ -6,7 +6,6 @@ owncloud.instances={}
 function owncloud:Instance(website)
 	if not website then website = {} end
 	if not website.root then website.root='/owncloud/' .. website.hostname .. '/' end
-	if not website.mysql then website.mysql = {database='owncloud2', username='root', password=mysql.password} end
 	if not website.rewrites then website.rewrites={} end
 	if not website.redirects then website.redirects={} end
 	
@@ -31,14 +30,6 @@ function apply_config()
 			exec("tar --skip-old-files -xf ./var/cache/owncloud.cache -C ./" .. path)
 			exec("chown www-data:www-data -R ./" .. path)
 		end
-		if instance.mysql then
-			if mysql and not mysql.running then
-				exec('mkdir /var/run/mysqld/ ; chmod 0777 /var/run/mysqld/; mysqld & sleep 3 2>&1 >/dev/null')
-				mysql.running = true
-			end
-			local ret = exec('mysql -uroot -p"' .. mysql.password .. '" -e "CREATE DATABASE ' .. instance.mysql.database .. ';"2>&1 >/dev/null')
-			if ret then print("Created MySQL Database " .. instance.mysql.database) end
-		end
 	end
 	return 0
 end
@@ -51,7 +42,7 @@ function install_container()
 	exec("apt-get update")
 	install_package("owncloud-files")
 	print("Saving cache...")
-	exec("cd ./var/www/owncloud/; tar -cf ../../../var/cache/owncloud.cache *")
+	exec("cd ./var/www/owncloud/; tar -cf ../../../var/cache/owncloud.cache .")
 	exec("rm -r ./var/www/owncloud/")
 	if mysql and mysql.password then
 		exec('mkdir /var/run/mysqld/ ; chmod 0777 /var/run/mysqld/; mysqld & sleep 5')
