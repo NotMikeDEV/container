@@ -5,8 +5,8 @@ require("templates/mysql")
 require("templates/owncloud")
 
 request_IP("10.0.0.2", {nat=true})
-request_IP("2001:470:3922::1:7239", {nat=true})
+request_IP("2001:470:3922::1:1627", {nat=true})
 
-mysql.password = "owncloud987"
+mysql:Database{database='owncloud'}:Grant{user='owncloud',password='owncloud'};
 
 local TestSite = caddy:AddWebsite(owncloud:Instance{hostname='owncloud.offsite.notmike.uk'})
