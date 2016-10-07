@@ -517,9 +517,14 @@ void sig_handler(int sig)
 		if (container_pid)
 		{
 			kill(container_pid, sig);
+			if (sig == SIGINT)
+			{
+				kill(container_pid, SIGTERM);
+				kill(container_pid, SIGKILL);
+			}
 		}
 	}
-	if (sig == SIGINT || sig == SIGTERM || sig == SIGKILL)
+	if (sig == SIGABRT || sig == SIGTERM || sig == SIGKILL)
 		exit(-1);
 	signal(sig, sig_handler);
 	return;
