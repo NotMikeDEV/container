@@ -1,6 +1,7 @@
 function exec(cmd)
-	--print ("Exec: " .. cmd)
+	if debug_enabled or debug_exec then print('exec("' .. cmd .. ')"') end
 	ret = os.execute(cmd)
+	if (debug_enabled or debug_exec) and ret then print('Returned ' .. ret) end
 	return ret
 end
 
