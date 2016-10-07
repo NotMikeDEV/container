@@ -1,12 +1,9 @@
 # Linux Container Building System
 
-## Compatibility
-C code should work on any linux distro.  
-Lua implimentation for debian only so far.
-
 ## Dependencies
 Lua requires readline library (libreadline-dev).
 Container building requires debootstrap.
+In theory if you have debootstrap and other required tools it should work on any linux kernel with namespace support, but only Debian is supported.
 
 ## Debian Install from source
     apt-get install build-essential git debootstrap libreadline-dev
