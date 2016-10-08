@@ -1,4 +1,4 @@
-math.randomseed(os.clock())
+math.randomseed(os.time() + (os.clock()*1000000))
 
 function exec(cmd)
 	if debug_enabled or debug_exec then print('exec("' .. cmd .. '")') end
