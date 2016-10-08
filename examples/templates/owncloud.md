@@ -17,7 +17,9 @@ require("templates/php")
 require("templates/mysql")
 require("templates/owncloud")
 
-mysql.password="supersecretsecurepassword1xkcd"
+local db = mysql:Database{database='owncloud'}
+db:Grant{user='owncloud',password='owncloud'}
+
 request_IP("192.0.2.1", {nat=true})
 request_IP("2001:db8:1", {nat=true})
 local ExampleSite = caddy:AddWebsite(owncloud:Instance{hostname='owncloud.example.com'})
