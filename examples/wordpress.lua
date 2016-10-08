@@ -9,6 +9,4 @@ request_IP("2001:470:3922::1:8193", {nat=true})
 
 mysql.password = "wordpress987"
 
-local TestSite = caddy:AddWebsite(wordpress:Instance{
-													hostname = 'wordpress.offsite.notmike.uk',
-													})
+local TestSite = caddy:AddWebsite(wordpress:Instance{hostname = 'wordpress.offsite.notmike.uk'})
