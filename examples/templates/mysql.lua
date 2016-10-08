@@ -61,7 +61,7 @@ function apply_config()
 		end
 
 		if database.users then for _, user in pairs(database.users) do
-			if exec('mysql -uroot -p"' .. mysql.password .. '" -e "GRANT ALL PRIVILEGES ON ' .. database.database .. '.* to \'' .. user.user .. '\'@\'localhost\' IDENTIFIED BY \'' .. user.password .. '\';" 3>/dev/null 2>&1') then
+			if exec('mysql -uroot -p"' .. mysql.password .. '" -e "GRANT ALL PRIVILEGES ON ' .. database.database .. '.* to \'' .. user.user .. '\'@\'localhost\' IDENTIFIED BY \'' .. user.password .. '\';" 1>/dev/null 2>&1') then
 				print('Granted ' .. user.user .. ' access to database ' .. database.database)
 			else
 				print('Failed to grant ' .. user.user .. ' access to database ' .. database.database)
