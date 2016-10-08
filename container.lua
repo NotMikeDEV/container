@@ -269,7 +269,7 @@ function read_file(filename)
 		contents = contents .. block
     end
 	io.close(file)
-	return block
+	return contents
 end
 
 function write_file(filename, contents)
