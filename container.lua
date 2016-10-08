@@ -1,3 +1,5 @@
+math.randomseed(os.clock())
+
 function exec(cmd)
 	if debug_enabled or debug_exec then print('exec("' .. cmd .. '")') end
 	local ret = os.execute(cmd)

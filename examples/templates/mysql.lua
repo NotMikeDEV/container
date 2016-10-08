@@ -1,5 +1,13 @@
 mysql={databases={}}
-mysql.password="notdefined"
+
+mysql.password = read_file(base_path .. '/.mysql-root.pwd')
+if not salt then
+	mysql.password = ''
+	for x = 1, 25 do
+		mysql.password = mysql.password .. string.char(math.random(97, 122))
+	end
+	write_file(base_path .. '/.mysql-root.pwd', mysql.password)
+end
 
 function mysql:Database(database)
 	if type(database) ~= "table" then database = {database=database} end
@@ -10,7 +18,7 @@ function mysql:Database(database)
 		if not user.password then user.password = "changeme" end
 		if not self.users then self.users = {} end
 		self.users[user] = user
-		return self
+		return user
 	end
 
 	mysql.databases[database]=database
@@ -27,10 +35,21 @@ end
 
 function apply_config()
 	for _, database in pairs(mysql.databases) do
-		if mysql and not mysql.running then
-			exec('mysqld >/dev/null 2>&1 & sleep 3')
-			mysql.running = true
+		if not mysql.running then
+			local handle = io.popen('mysqld >/dev/null 2>&1 & echo $!')
+			mysql.running = handle:read("*number")
+			handle:close()
 		end
+		local count=0
+		while count < 30 do
+			if exec('mysql -uroot -p"' .. mysql.password .. '" -e "USE mysql;" 1>/dev/null 2>&1') then
+				count = 999
+			else
+				count = count + 1
+				exec("sleep 0.5")
+			end
+		end
+		
 		if not exists('/var/lib/mysql/' .. database.database .. '/db.opt') then
 			if exec('mysql -uroot -p"' .. mysql.password .. '" -e "CREATE DATABASE ' .. database.database .. ';" 1>/dev/null 2>&1') then
 				print('Created MySQL Database "' .. database.database .. '"')
@@ -40,16 +59,22 @@ function apply_config()
 		else
 			print('Loaded database ' .. database.database)
 		end
+
 		if database.users then for _, user in pairs(database.users) do
-			if exec('mysql -uroot -p"' .. mysql.password .. '" -e "GRANT ALL PRIVILEGES ON ' .. database.database .. '.* to \'' .. user.password .. '\'@\'%\' IDENTIFIED BY \'' .. user.user .. '\';" 1>/dev/null 2>&1') then
+			if exec('mysql -uroot -p"' .. mysql.password .. '" -e "GRANT ALL PRIVILEGES ON ' .. database.database .. '.* to \'' .. user.user .. '\'@\'localhost\' IDENTIFIED BY \'' .. user.password .. '\';" 3>/dev/null 2>&1') then
 				print('Granted ' .. user.user .. ' access to database ' .. database.database)
+			else
+				print('Failed to grant ' .. user.user .. ' access to database ' .. database.database)
 			end
 		end end
 	end
-	exec("killall -s TERM mysqld")
-	exec("killall -s KILL mysqld")
-	exec("sleep 1")
-	exec("pstree -a")
+
+	if mysql.running then
+		exec("kill -s TERM " .. mysql.running)
+		exec("kill -s KILL " .. mysql.running)
+		exec("sleep 1")
+	end
+	mysql.running = false
 	return 0
 end
 
