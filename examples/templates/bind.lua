@@ -6,8 +6,11 @@ function bind:AllowRecursion(ip)
 end
 
 function bind:NewZone(zone)
-	if not bind.zones then bind.zones = {} end
 	if not zone.domain then print("bind:NewZone", "No domain specified.") os.exit(1) end
+	if not zone.type then zone.type = 'master' .. zone.domain end
+	if not zone.file then zone.file = '/etc/bind/zones/' .. zone.domain end
+
+	if not bind.zones then bind.zones = {} end
 	bind.zones[zone] = zone
 end
 
@@ -17,6 +20,7 @@ function install_container()
 end
 
 function run()
+	print("Starting Bind.")
 	exec("named")
 	return 0
 end
@@ -41,6 +45,19 @@ function apply_config()
 	local config_options = ""
 	for _, option in pairs(config) do
 		config_options = config_options .. option .. "\n";
+	end
+	for _, zone in pairs(bind.zones) do
+		config_options = config_options .. "zone \"" .. zone.domain .. "\" {\n";
+		config_options = config_options .. "\ttype\t" .. zone.type .. ";\n";
+		config_options = config_options .. "\tfile\t\"" .. zone.file .. "\";\n";
+		if zone.type == "master" and zone.masters then
+			config_options = config_options .. "\tmasters: {\n";
+			for _,master in pairs(zones.masters) do
+				config_options = config_options .. "\t\t" .. master .. ";\n";
+			end
+			config_options = config_options .. "\t}\n";
+		end
+		config_options = config_options .. "}\n";
 	end
 	write_file('/etc/bind/named.conf', "options {\n" .. config_options .. "\n};\n")
 	return 0
