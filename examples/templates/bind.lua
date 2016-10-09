@@ -42,24 +42,27 @@ function apply_config()
 	if bind.nat64_prefix then
 		config[#config+1] = 'dns64 ' .. bind.nat64_prefix .. "{ break-dnssec yes; };"
 	end
+	
 	local config_options = ""
 	for _, option in pairs(config) do
 		config_options = config_options .. option .. "\n";
 	end
+	config_options = "options {\n" .. config_options .. "\n};\n"
+	
 	if bind.zones then for _, zone in pairs(bind.zones) do
 		config_options = config_options .. "zone \"" .. zone.domain .. "\" {\n";
 		config_options = config_options .. "\ttype\t" .. zone.type .. ";\n";
 		config_options = config_options .. "\tfile\t\"" .. zone.file .. "\";\n";
-		if zone.type == "master" and zone.masters then
-			config_options = config_options .. "\tmasters: {\n";
-			for _,master in pairs(zones.masters) do
+		if zone.masters then
+			config_options = config_options .. "\tmasters {\n";
+			for _,master in pairs(zone.masters) do
 				config_options = config_options .. "\t\t" .. master .. ";\n";
 			end
-			config_options = config_options .. "\t}\n";
+			config_options = config_options .. "\t};\n";
 		end
-		config_options = config_options .. "}\n";
+		config_options = config_options .. "};\n";
 	end end
-	write_file('/etc/bind/named.conf', "options {\n" .. config_options .. "\n};\n")
+	write_file('/etc/bind/named.conf', config_options)
 	return 0
 end
 
