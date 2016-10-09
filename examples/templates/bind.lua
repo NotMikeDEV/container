@@ -46,7 +46,7 @@ function apply_config()
 	for _, option in pairs(config) do
 		config_options = config_options .. option .. "\n";
 	end
-	for _, zone in pairs(bind.zones) do
+	if bind.zones then for _, zone in pairs(bind.zones) do
 		config_options = config_options .. "zone \"" .. zone.domain .. "\" {\n";
 		config_options = config_options .. "\ttype\t" .. zone.type .. ";\n";
 		config_options = config_options .. "\tfile\t\"" .. zone.file .. "\";\n";
@@ -58,7 +58,7 @@ function apply_config()
 			config_options = config_options .. "\t}\n";
 		end
 		config_options = config_options .. "}\n";
-	end
+	end end
 	write_file('/etc/bind/named.conf', "options {\n" .. config_options .. "\n};\n")
 	return 0
 end
