@@ -597,6 +597,7 @@ int main (int argc, char* argv[]) {
 	if (luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0))
 		error(L, "cannot run container: %s",
 			lua_tostring(L, -1));
+	lua_exec_callback("FIX_ENVIRONMENT", L);
 	char done_something=0;
 	int ret=0;
 	if (!ret && (!strcmp(command, "restart") || !strcmp(command, "stop") || (!strcmp(command, "scbs") && is_running(L, get_container_pid(L)))))

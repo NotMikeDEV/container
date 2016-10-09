@@ -328,7 +328,14 @@ end
 include = require
 function require(modulename)
 	if debug_enabled then print('require("' .. modulename .. '")') end
-	local before_ENV = table.clone(_ENV)
 	include(modulename)
-	prepend_functions(_ENV, before_ENV, modulename)
+	FIX_ENVIRONMENT(modulename)
+end
+
+local DEFAULT_ENVIRONMENT = table.clone(_ENV)
+function FIX_ENVIRONMENT(modulename)
+	if not modulename then modulename = 'container' end
+	prepend_functions(_ENV, DEFAULT_ENVIRONMENT, modulename)
+	DEFAULT_ENVIRONMENT = table.clone(_ENV)
+	return 0
 end
