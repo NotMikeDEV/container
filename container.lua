@@ -99,6 +99,7 @@ function init_network_needed()
 end
 
 function init_network_host(pid)
+	if debug_enabled then print("init_network_host()") end
 	exec("ip link add name c" .. string.format("%.0f", pid) .. " type veth peer name uplink")
 	exec("ifconfig c" .. string.format("%.0f", pid) .. " up")
 	exec("ip -6 addr add fe80::1/128 dev c" .. string.format("%.0f", pid))
@@ -107,6 +108,7 @@ function init_network_host(pid)
 	local addr = network;
 	while addr do
 		if (addr.address) then
+			if debug_enabled then print("add address " .. addr.address) end
 			if IP_family(addr.address) == 4 then
 				exec("ip -4 route add " .. addr.address .. "/32 dev c" .. string.format("%.0f", pid))
 				exec("iptables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
@@ -129,6 +131,7 @@ function init_network_host(pid)
 			end
 		end
 		if (addr.route) then
+			if debug_enabled then print("add route ".. addr.route) end
 			if IP_family(addr.route) == 4 then
 				exec("ip -4 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid))
 			elseif IP_family(addr.route) == 6 then
@@ -137,10 +140,12 @@ function init_network_host(pid)
 		end
 		addr = addr.next
 	end
+	if debug_enabled then print("return 0") end
 	return 0
 end
 
 function init_network_child()
+	if debug_enabled then print("init_network_child()") end
 	exec("ifconfig lo up")
 	exec("ifconfig uplink up")
 	exec("ip -4 route add 100.64.0.0/32 dev uplink")
@@ -154,6 +159,7 @@ function init_network_child()
 		end
 		addr = addr.next
 	end
+	if debug_enabled then print("return 0") end
 	return 0
 end
 
