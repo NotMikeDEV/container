@@ -25,12 +25,18 @@ clean:
 	$(MAKE) -C lua clean
 
 install: container
+	-rm -f ${INSTALL_PATH}/container
 	cp container ${INSTALL_PATH}
 	mkdir -p /etc/container/templates/
 	cp -R examples/templates/* /etc/container/templates/
 
 install_examples: install
 	cp -R examples/* /etc/container/
+
+autostart: install
+	cp autostart-container /etc/init.d/
+	update-rc.d autostart-container defaults
+	update-rc.d autostart-container enable
 
 src: container-src.tar.gz
 
