@@ -1,7 +1,7 @@
 mysql={databases={}}
 
 mysql.password = read_file(base_path .. '/.mysql-root.pwd')
-if not salt then
+if not mysql.password then
 	mysql.password = ''
 	for x = 1, 25 do
 		mysql.password = mysql.password .. string.char(math.random(97, 122))
