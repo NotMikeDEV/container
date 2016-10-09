@@ -8,7 +8,7 @@ end
 
 function run()
 	print("Starting PHP.")
-	exec("/usr/sbin/php5-fpm")
+	exec("/usr/sbin/php5-fpm &")
 	return 0
 end
 
