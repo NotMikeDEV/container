@@ -52,7 +52,7 @@ end
 
 function install_package(pack)
 	if debug_enabled then print('install_package("' .. pack .. '")') end
-	local ret = exec("RUNLEVEL=1 apt-get install -y " .. pack)
+	local ret = exec("RUNLEVEL=1 apt-get install -y --force-yes " .. pack)
 	if not ret then return ret end
 	return 0
 end
