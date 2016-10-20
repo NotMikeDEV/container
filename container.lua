@@ -22,6 +22,7 @@ function build()
 		local arch = assert(f:read('*a'))
 		f:close()
 		if string.find(arch, "x86_64") then arch = "amd64" end
+		arch = string.gsub(arch, "\n", "")
 		mkdir("../.debootstrap")
 		chdir("../.debootstrap")
 		exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
