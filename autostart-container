@@ -12,7 +12,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 do_containers() {
-	for container in /etc/container/*.lua ; do
+	for container in /etc/container/*.lua /etc/container/*/app.lua ; do
 		$container $1 > /dev/null 2>&1 &
 	done
 	sleep 1
