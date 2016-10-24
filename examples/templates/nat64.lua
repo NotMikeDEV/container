@@ -11,7 +11,6 @@ function run()
 	exec("tayga")
 	exec("iptables -t nat -A POSTROUTING -j MASQUERADE")
 	exec("ifconfig nat64 " .. nat64.ipv4 .. " up")
-	exec("ip addr add " .. nat64.ipv4 .. " dev uplink")
 	exec("ip -4 route add 100.100.0.0/16 dev nat64")
 	exec("ip -6 route add " .. nat64.prefix .. " dev nat64")
 	return 0
@@ -19,6 +18,11 @@ end
 
 function init_network_needed()
 	return 1
+end
+
+function init_network_child()
+	exec("ip addr add " .. nat64.ipv4 .. " dev uplink")
+	return 0
 end
 
 function init_network_host(pid)
