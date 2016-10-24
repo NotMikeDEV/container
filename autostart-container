@@ -13,8 +13,10 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 do_containers() {
 	for container in /etc/container/*.lua /etc/container/*/app.lua ; do
-		$container $1 > /dev/null 2>&1 &
-		sleep 1
+		if [ -f $container ] ; then
+			echo $container $1
+			$container $1
+		fi
 	done
 	sleep 1
 	return $$
