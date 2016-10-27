@@ -5,7 +5,7 @@ INSTALL_PATH=/usr/sbin
 container: lua/liblua.a defaultlua.o
 	$(CC) container.c lua/liblua.a defaultlua.o -o container -ldl -lm
 
-all: container container-src.tar.gz
+all: container
 
 lua/liblua.a:
 	$(MAKE) -C lua linux
@@ -37,8 +37,3 @@ autostart: install
 	cp autostart-container /etc/init.d/
 	update-rc.d autostart-container defaults
 	update-rc.d autostart-container enable
-
-src: container-src.tar.gz
-
-container-src.tar.gz:
-	tar -zcf container-src.tar.gz --transform 's,^,container/,' container.c container.lua README.md LICENSE examples/*.lua lua/*.c lua/*.h Makefile lua/Makefile
