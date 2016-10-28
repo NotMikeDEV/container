@@ -12,13 +12,12 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 do_containers() {
-	for container in /etc/container/*.lua /etc/container/*/app.lua ; do
+	for container in /etc/container/*/app.lua /etc/container/*.lua ; do
 		if [ -f $container ] ; then
 			echo $container $1
-			$container $1
+			timeout --foreground 10s sh -c "${container} $1"
 		fi
 	done
-	sleep 1
 	return $$
 }
 

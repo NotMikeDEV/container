@@ -9,6 +9,17 @@ function exec(cmd)
 	return ret
 end
 
+function exec_or_die(cmd)
+	local ret = exec(cmd)
+	if not ret then die("Error Executing " .. cmd) end
+	return ret
+end
+
+function die(reason)
+	print(reason .. "\r\n")
+	os.exit(1)
+end
+
 function install_container()
 	if debug_enabled then print("install_container()") end
 	return 0
@@ -25,18 +36,18 @@ function build()
 		arch = string.gsub(arch, "\n", "")
 		mkdir("../.debootstrap")
 		chdir("../.debootstrap")
-		exec("debootstrap  --include=iproute2,net-tools --arch=" .. arch .. " stable . http://http.debian.net/debian")
+		exec_or_die("debootstrap  --include=iproute2,net-tools stable . http://ftp.se.debian.org/debian")
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
-			exec("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
+			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
 		end
 		chdir("../.jail")
-		exec("rm -rf ../.debootstrap")
+		exec_or_die("rm -rf ../.debootstrap")
 	end
 	print("Installing debian from cache...")
-	exec("tar --skip-old-files -kjxf /var/cache/debian.cache")
+	exec_or_die("tar --overwrite -jxf /var/cache/debian.cache")
 	print("Updating...")
-	exec("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
+	exec_or_die("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
 	print("Debian Installed.")
 	old_exec = exec
 	exec = function (cmd) return old_exec("chroot . sh -c '" .. cmd .. "'") end
@@ -53,8 +64,7 @@ end
 
 function install_package(pack)
 	if debug_enabled then print('install_package("' .. pack .. '")') end
-	local ret = exec("RUNLEVEL=1 apt-get install -y --force-yes " .. pack)
-	if not ret then return ret end
+	exec_or_die("RUNLEVEL=1 apt-get install -y --force-yes " .. pack)
 	return 0
 end
 
@@ -101,30 +111,30 @@ end
 
 function init_network_host(pid)
 	if debug_enabled then print("init_network_host()") end
-	exec("ip link add name c" .. string.format("%.0f", pid) .. " type veth peer name uplink")
-	exec("ifconfig c" .. string.format("%.0f", pid) .. " up")
-	exec("ip -6 addr add fe80::1/128 dev c" .. string.format("%.0f", pid))
-	exec("ip -4 addr add 100.64.0.0/32 dev c" .. string.format("%.0f", pid))
-	exec("ip link set dev uplink netns " .. string.format("%.0f", pid))
+	exec_or_die("ip link add name c" .. string.format("%.0f", pid) .. " type veth peer name uplink")
+	exec_or_die("ifconfig c" .. string.format("%.0f", pid) .. " up")
+	exec_or_die("ip -6 addr add fe80::1/128 dev c" .. string.format("%.0f", pid))
+	exec_or_die("ip -4 addr add 100.64.0.0/32 dev c" .. string.format("%.0f", pid))
+	exec_or_die("ip link set dev uplink netns " .. string.format("%.0f", pid))
 	local addr = network;
 	while addr do
 		if (addr.address) then
 			if debug_enabled then print("add address " .. addr.address) end
 			if IP_family(addr.address) == 4 then
-				exec("ip -4 route add " .. addr.address .. "/32 dev c" .. string.format("%.0f", pid))
+				exec_or_die("ip -4 route add " .. addr.address .. "/32 dev c" .. string.format("%.0f", pid))
 				exec("iptables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
 				if (addr.flags.nat) then
-					exec("iptables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
+					exec_or_die("iptables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
 				end
 				if (addr.flags.proxyarp) then
 					exec("arp -i " .. addr.flags.proxyarp .. " -Ds " .. addr.address .. " " .. addr.flags.proxyarp .. " netmask 255.255.255.255 pub")
 				end
 			end
 			if IP_family(addr.address) == 6 then
-				exec("ip -6 route add " .. addr.address .. "/128 dev c" .. string.format("%.0f", pid))
+				exec_or_die("ip -6 route add " .. addr.address .. "/128 dev c" .. string.format("%.0f", pid))
 				exec("ip6tables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
 				if (addr.flags.nat) then
-					exec("ip6tables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
+					exec_or_die("ip6tables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
 				end
 				if (addr.flags.proxyarp) then
 					exec("ip -6 neigh add proxy " .. addr.address .. " dev " .. addr.flags.proxyarp)
@@ -134,9 +144,9 @@ function init_network_host(pid)
 		if (addr.route) then
 			if debug_enabled then print("add route ".. addr.route) end
 			if IP_family(addr.route) == 4 then
-				exec("ip -4 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid))
+				exec_or_die("ip -4 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid))
 			elseif IP_family(addr.route) == 6 then
-				exec("ip -6 route add " .. addr.route .. " via fe80::2 dev c" .. string.format("%.0f", pid))
+				exec_or_die("ip -6 route add " .. addr.route .. " via fe80::2 dev c" .. string.format("%.0f", pid))
 			end
 		end
 		addr = addr.next
@@ -147,16 +157,16 @@ end
 
 function init_network_child()
 	if debug_enabled then print("init_network_child()") end
-	exec("ifconfig lo up")
-	exec("ifconfig uplink up")
-	exec("ip -4 route add 100.64.0.0/32 dev uplink")
-	exec("ip -4 route add default dev uplink via 100.64.0.0")
-	exec("ip -6 route add default dev uplink via fe80::1")
-	exec("ip addr add fe80::2 dev uplink")
+	exec_or_die("ifconfig lo up")
+	exec_or_die("ifconfig uplink up")
+	exec_or_die("ip -4 route add 100.64.0.0/32 dev uplink")
+	exec_or_die("ip -4 route add default dev uplink via 100.64.0.0")
+	exec_or_die("ip -6 route add default dev uplink via fe80::1")
+	exec_or_die("ip addr add fe80::2 dev uplink")
 	local addr = network;
 	while addr do
 		if (addr.address) then
-			exec("ip addr add " .. addr.address .. " dev uplink")
+			exec_or_die("ip addr add " .. addr.address .. " dev uplink")
 		end
 		addr = addr.next
 	end
@@ -220,21 +230,11 @@ filesystem["/run"] = { type="tmpfs", size="128M" }
 function mount_container()
 	if debug_enabled then print('mount_container()') end
 
-	local ret = exec("mount -n -o remount --make-private / /")
-	if not ret then return 1 end
-
-	ret = exec("mkdir -p .jail && mkdir -p .filesystem && mount -n -o rw --bind .filesystem .jail")
-	if not ret then return 2 end
-
-	ret = exec("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
-	if not ret then return 3 end
-
-	ret = exec("mkdir -p .jail/sys && mount --bind /sys .jail/sys")
-	if not ret then return 4 end
-
-	ret = exec("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
-	if not ret then return 5 end
-
+	exec_or_die("mount -n -o remount --make-private / /")
+	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n -o rw --bind .filesystem .jail")
+	exec_or_die("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
+	exec_or_die("mkdir -p .jail/sys && mount --bind /sys .jail/sys")
+	exec_or_die("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
 	for target, mount in pairsByKeys(filesystem) do
 		if mount['type'] == "tmpfs" then
 			if not isDir(".jail" .. target) then
@@ -244,15 +244,13 @@ function mount_container()
 			if mount['size'] then
 				mount_opts = "-n -o size=" .. mount['size'] .. " "
 			end
-			ret = exec("mount " .. mount_opts .. "-t tmpfs tmp" .. string.sub(tostring(mount),10) .. " .jail" .. target)
-			if not ret then return 1 end
+			exec_or_die("mount " .. mount_opts .. "-t tmpfs tmp" .. string.sub(tostring(mount),10) .. " .jail" .. target)
 		elseif mount['type'] == "map" then
 			if not isDir(".jail" .. target) then
 				exec("mkdir -p .jail" .. target)
 			end
 			exec("mkdir -p " .. mount['path']);
-			ret = exec("mount -n --bind " .. mount['path'] .. " .jail" .. target)
-			if not ret then return 6 end
+			exec_or_die("mount -n --bind " .. mount['path'] .. " .jail" .. target)
 		end
 	end
 	return 0
@@ -261,8 +259,7 @@ end
 function lock_container()
 	if debug_enabled then print('lock_container()') end
 
-	local ret = exec("mount -n -o remount,ro --bind / /")
-	if not ret then return 1 end
+	exec_or_die("mount -n -o remount,ro --bind / /")
 	return 0
 end
 

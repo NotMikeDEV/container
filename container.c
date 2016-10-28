@@ -600,7 +600,7 @@ int main (int argc, char* argv[]) {
 	lua_exec_callback("FIX_ENVIRONMENT", L);
 	char done_something=0;
 	int ret=0;
-	if (!ret && (!strcmp(command, "restart") || !strcmp(command, "stop") || (!strcmp(command, "scbs") && is_running(L, get_container_pid(L)))))
+	if (!ret && (!strcmp(command, "restart") || !strcmp(command, "stop") || !strcmp(command, "clean") || (!strcmp(command, "scbs") && is_running(L, get_container_pid(L)))))
 	{
 		pid_t pid = get_container_pid(L);
 		time_t start = time(NULL);
@@ -624,6 +624,8 @@ int main (int argc, char* argv[]) {
 			RETURN_ERROR;
 		}
 		ret = ISOLATE(build_clean, L);
+		if (ret)
+			RETURN_ERROR;
 		done_something = 1;
 	}
 	if (!ret && !strcmp(command, "build"))
@@ -634,6 +636,8 @@ int main (int argc, char* argv[]) {
 			RETURN_ERROR;
 		}
 		ret = ISOLATE(build, L);
+		if (ret)
+			RETURN_ERROR;
 		done_something = 1;
 	}
 	if (!ret && (!strcmp(command, "restart") || !strcmp(command, "start") || !strcmp(command, "scbs")))
@@ -648,7 +652,7 @@ int main (int argc, char* argv[]) {
 			printf("Container needs to be built.\n");
 			ret = ISOLATE(build, L);
 			if (ret)
-				return ret;
+				RETURN_ERROR;
 		}
 		SPAWN(start, L);
 		if (is_running(L, 0))
@@ -666,7 +670,7 @@ int main (int argc, char* argv[]) {
 		}
 		ret = shell(L);
 		if (ret)
-			return ret;
+			RETURN_ERROR;
 		done_something = 1;
 	}
 	if (!ret && !done_something)
