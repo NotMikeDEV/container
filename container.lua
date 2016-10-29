@@ -45,7 +45,8 @@ function build()
 		exec_or_die("rm -rf ../.debootstrap")
 	end
 	print("Installing debian from cache...")
-	exec_or_die("tar --overwrite -jxf /var/cache/debian.cache")
+	exec("tar -jxf /var/cache/debian.cache")
+	if not isFile("etc/debian_version") then die("Error extracting debian image.") end
 	print("Updating...")
 	exec_or_die("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
 	print("Debian Installed.")
@@ -253,6 +254,12 @@ function mount_container()
 			exec_or_die("mount -n --bind " .. mount['path'] .. " .jail" .. target)
 		end
 	end
+	return 0
+end
+
+function unmount_container()
+	if debug_enabled then print('unmount_container()') end
+	exec("umount -l -R " .. base_path ..  "/.jail >/dev/null 2>&1")
 	return 0
 end
 

@@ -231,6 +231,7 @@ int init_environment(lua_State* L, const char writeable)
 	sprintf(target, "%s", container_root);
 	chdir(target);
 
+	lua_exec_callback("unmount_container", L);
 	int ret = lua_exec_callback_arg("mount_container", L, writeable);
 	if (ret)
 	{
@@ -267,9 +268,12 @@ int init_network_needed(lua_State *L)
 int build_clean(void* args)
 {
 	child_wait("clean");
-	
+
 	lua_State *L = (lua_State*)args;
 	const char* container_root = base_path(L);
+	chdir(container_root);
+	lua_exec_callback("unmount_container", L);
+
 	char* target = malloc(strlen(container_root) + 100);
 	sprintf(target, "rm -rf %s/.[!.]*", container_root);
 	system(target);
@@ -283,6 +287,8 @@ int build(void* args)
 
 	printf("Building container...\n");
 	lua_State *L = (lua_State*)args;
+	chdir(base_path(L));
+	chdir(".jail");
 	int ret = init_environment(L, 1);
 	if (ret)
 		return ret;
@@ -308,6 +314,8 @@ int need_build(void* args)
 int start(void* args)
 {
 	lua_State *L = (lua_State*)args;
+	chdir(base_path(L));
+	chdir(".jail");
 	int fd;
 
 	setpgid(getpid(), 0); 
@@ -468,6 +476,7 @@ int SPAWN(int (*function)(void *), lua_State *L)
 	long flags = CLONE_NEWPID|CLONE_NEWNS|SIGCHLD;
 	if (init_network_needed(L))
 		flags |= CLONE_NEWNET;
+	chdir(base_path(L));
 	char stack[4096];
 	child_run = 0;
 	int tid = clone(function, stack + sizeof(stack), flags, L);
@@ -650,6 +659,9 @@ int main (int argc, char* argv[]) {
 		if (need_build(L))
 		{
 			printf("Container needs to be built.\n");
+			ret = ISOLATE(build_clean, L);
+			if (ret)
+				RETURN_ERROR;
 			ret = ISOLATE(build, L);
 			if (ret)
 				RETURN_ERROR;
