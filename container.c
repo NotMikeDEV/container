@@ -228,10 +228,12 @@ int init_environment(lua_State* L, const char writeable)
 	sprintf(target, "%s.jail", container_root);
 	mkdir(target, 0777);
 
+	chdir("/");
+	lua_exec_callback("unmount_container", L);
+
 	sprintf(target, "%s", container_root);
 	chdir(target);
 
-	lua_exec_callback("unmount_container", L);
 	int ret = lua_exec_callback_arg("mount_container", L, writeable);
 	if (ret)
 	{
@@ -271,7 +273,7 @@ int build_clean(void* args)
 
 	lua_State *L = (lua_State*)args;
 	const char* container_root = base_path(L);
-	chdir(container_root);
+	chdir("/");
 	lua_exec_callback("unmount_container", L);
 
 	char* target = malloc(strlen(container_root) + 100);
@@ -305,9 +307,6 @@ int build(void* args)
 int need_build(void* args)
 {
 	lua_State *L = (lua_State*)args;
-	int ret = init_environment(L, 1);
-	if (ret)
-		return ret;
 	return lua_exec_callback("need_build", L);
 }
 
@@ -483,13 +482,19 @@ int SPAWN(int (*function)(void *), lua_State *L)
 	if (tid== -1)
 	{
 		perror("exec");
-		RETURN_ERROR;
+		return 0;
 	}
 	if (init_network_needed(L))
 	{
 		int ret = init_network_host(L, tid);
 		if (ret)
+		{
+			RESUME(tid);
+			kill(tid, SIGTERM);
+			kill(tid, SIGKILL);
+			printf("Error initialising network.\n");
 			return 0;
+		}
 	}
 	RESUME(tid);
 	write_pid(L, tid);
@@ -499,6 +504,8 @@ int SPAWN(int (*function)(void *), lua_State *L)
 int ISOLATE(int (*function)(void *), lua_State *L)
 {
 	pid_t tid = SPAWN(function, L);
+	if (!tid)
+		return 1;
 	int status=0;
 	while (is_running(L, tid))
 	{
@@ -666,8 +673,8 @@ int main (int argc, char* argv[]) {
 			if (ret)
 				RETURN_ERROR;
 		}
-		SPAWN(start, L);
-		if (is_running(L, 0))
+		int tid = SPAWN(start, L);
+		if (tid && is_running(L, 0))
 			printf("Container running\n");
 		else
 			RETURN_ERROR;

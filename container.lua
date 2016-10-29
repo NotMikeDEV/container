@@ -112,30 +112,30 @@ end
 
 function init_network_host(pid)
 	if debug_enabled then print("init_network_host()") end
-	exec_or_die("ip link add name c" .. string.format("%.0f", pid) .. " type veth peer name uplink")
-	exec_or_die("ifconfig c" .. string.format("%.0f", pid) .. " up")
-	exec_or_die("ip -6 addr add fe80::1/128 dev c" .. string.format("%.0f", pid))
-	exec_or_die("ip -4 addr add 100.64.0.0/32 dev c" .. string.format("%.0f", pid))
-	exec_or_die("ip link set dev uplink netns " .. string.format("%.0f", pid))
+	if not exec("ip link add name c" .. string.format("%.0f", pid) .. " type veth peer name uplink") then return 1 end
+	if not exec("ifconfig c" .. string.format("%.0f", pid) .. " up") then return 1 end
+	if not exec("ip -6 addr add fe80::1/128 dev c" .. string.format("%.0f", pid)) then return 1 end
+	if not exec("ip -4 addr add 100.64.0.0/32 dev c" .. string.format("%.0f", pid)) then return 1 end
+	if not exec("ip link set dev uplink netns " .. string.format("%.0f", pid)) then return 1 end
 	local addr = network;
 	while addr do
 		if (addr.address) then
 			if debug_enabled then print("add address " .. addr.address) end
 			if IP_family(addr.address) == 4 then
-				exec_or_die("ip -4 route add " .. addr.address .. "/32 dev c" .. string.format("%.0f", pid))
+				if not exec("ip -4 route add " .. addr.address .. "/32 dev c" .. string.format("%.0f", pid)) then return 1 end
 				exec("iptables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
 				if (addr.flags.nat) then
-					exec_or_die("iptables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
+					if not exec("iptables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE") then return 1 end
 				end
 				if (addr.flags.proxyarp) then
 					exec("arp -i " .. addr.flags.proxyarp .. " -Ds " .. addr.address .. " " .. addr.flags.proxyarp .. " netmask 255.255.255.255 pub")
 				end
 			end
 			if IP_family(addr.address) == 6 then
-				exec_or_die("ip -6 route add " .. addr.address .. "/128 dev c" .. string.format("%.0f", pid))
+				if not exec("ip -6 route add " .. addr.address .. "/128 dev c" .. string.format("%.0f", pid)) then return 1 end
 				exec("ip6tables -t nat -D POSTROUTING -s " .. addr.address .. " -j MASQUERADE 2>/dev/null")
 				if (addr.flags.nat) then
-					exec_or_die("ip6tables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE")
+					if not exec("ip6tables -t nat -I POSTROUTING -s " .. addr.address .. " -j MASQUERADE") then return 1 end
 				end
 				if (addr.flags.proxyarp) then
 					exec("ip -6 neigh add proxy " .. addr.address .. " dev " .. addr.flags.proxyarp)
@@ -145,9 +145,9 @@ function init_network_host(pid)
 		if (addr.route) then
 			if debug_enabled then print("add route ".. addr.route) end
 			if IP_family(addr.route) == 4 then
-				exec_or_die("ip -4 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid))
+				if not exec("ip -4 route add " .. addr.route .. " dev c" .. string.format("%.0f", pid)) then return 1 end
 			elseif IP_family(addr.route) == 6 then
-				exec_or_die("ip -6 route add " .. addr.route .. " via fe80::2 dev c" .. string.format("%.0f", pid))
+				if not exec("ip -6 route add " .. addr.route .. " via fe80::2 dev c" .. string.format("%.0f", pid)) then return 1 end
 			end
 		end
 		addr = addr.next
@@ -259,7 +259,7 @@ end
 
 function unmount_container()
 	if debug_enabled then print('unmount_container()') end
-	exec("umount -l -R " .. base_path ..  "/.jail >/dev/null 2>&1")
+	exec("umount -l -R " .. base_path ..  " >/dev/null 2>&1")
 	return 0
 end
 
