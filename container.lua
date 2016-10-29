@@ -231,19 +231,19 @@ filesystem["/run"] = { type="tmpfs", size="128M" }
 function mount_container()
 	if debug_enabled then print('mount_container()') end
 
-	exec_or_die("mount -n -o remount --make-private / /")
-	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n -o rw --bind .filesystem .jail")
-	exec_or_die("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
-	exec_or_die("mkdir -p .jail/sys && mount --bind /sys .jail/sys")
-	exec_or_die("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
+	exec("mount -n --bind --make-private . .")
+	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n --make-private -o rw --bind .filesystem .jail")
+	exec_or_die("mkdir -p .jail/proc && mount --make-private -t proc proc .jail/proc")
+	exec_or_die("mkdir -p .jail/sys && mount --make-private --bind /sys .jail/sys")
+	exec_or_die("mkdir -p .jail/dev && mount --make-private -t devtmpfs udev .jail/dev")
 	for target, mount in pairsByKeys(filesystem) do
 		if mount['type'] == "tmpfs" then
 			if not isDir(".jail" .. target) then
 				exec("mkdir -p .jail" .. target)
 			end
-			mount_opts = "-n "
+			mount_opts = "-n --make-private "
 			if mount['size'] then
-				mount_opts = "-n -o size=" .. mount['size'] .. " "
+				mount_opts = "-n --make-private -o size=" .. mount['size'] .. " "
 			end
 			exec_or_die("mount " .. mount_opts .. "-t tmpfs tmp" .. string.sub(tostring(mount),10) .. " .jail" .. target)
 		elseif mount['type'] == "map" then
@@ -251,7 +251,7 @@ function mount_container()
 				exec("mkdir -p .jail" .. target)
 			end
 			exec("mkdir -p " .. mount['path']);
-			exec_or_die("mount -n --bind " .. mount['path'] .. " .jail" .. target)
+			exec_or_die("mount -n --make-private --bind " .. mount['path'] .. " .jail" .. target)
 		end
 	end
 	return 0
@@ -266,7 +266,7 @@ end
 function lock_container()
 	if debug_enabled then print('lock_container()') end
 
-	exec_or_die("mount -n -o remount,ro --bind / /")
+	exec_or_die("mount -n --make-private -o remount,ro --bind / /")
 	return 0
 end
 
