@@ -36,7 +36,7 @@ function build()
 		arch = string.gsub(arch, "\n", "")
 		mkdir("../.debootstrap")
 		chdir("../.debootstrap")
-		exec_or_die("debootstrap  --include=iproute2,net-tools stable . http://ftp.se.debian.org/debian")
+		exec_or_die("debootstrap  --include=iproute2,net-tools stable . http://ftp.heanet.ie/debian")
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
 			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
@@ -295,8 +295,33 @@ function write_file(filename, contents)
 	return 0
 end
 
+nameservers=nil
+local file = io.open("/etc/resolv.conf", "r")
+if file then
+	nameservers={}
+	io.input(file)
+	local line = io.read("*line")
+	while line do
+		local server = line:match("nameserver%s*(%g*)")
+		if server == "::1" then server = "2001:4860:4860::8844" end
+		if server == "127.0.0.1" then server = "8.8.4.4" end
+		if server then table.insert(nameservers, server) end
+		line = io.read("*line")
+	end
+	io.close(file)
+end
+
 config_files = {}
 function apply_config()
+	if debug_enabled then print('configure nameservers') end
+	if nameservers then
+		local resolvconf = ""
+		for _,server in pairs(nameservers) do
+			resolvconf = resolvconf .. "nameserver " .. server .. "\n"
+		end
+		if debug_enabled and resolvconf then print("/etc/resolv.conf:\n" .. resolvconf) end
+		if resolvconf then write_file("etc/resolv.conf", resolvconf) end
+	end
 	if debug_enabled then print('apply_config()') end
 	for target, content in pairs(config_files) do
 		exec("mkdir -p " .. dirname(target))
@@ -344,3 +369,4 @@ function FIX_ENVIRONMENT(modulename)
 	DEFAULT_ENVIRONMENT = table.clone(_ENV)
 	return 0
 end
+
