@@ -277,7 +277,7 @@ int build_clean(void* args)
 	lua_exec_callback("unmount_container", L);
 
 	char* target = malloc(strlen(container_root) + 100);
-	sprintf(target, "rm -rf %s/.[!.]*", container_root);
+	sprintf(target, "rm --one-file-system -rf %s/.[!.]*", container_root);
 	system(target);
 	free(target);
 	return 0;

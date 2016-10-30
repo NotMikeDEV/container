@@ -39,7 +39,8 @@ function build()
 		exec_or_die("debootstrap  --include=iproute2,net-tools stable . http://ftp.heanet.ie/debian")
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
-			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf /var/cache/debian.cache *")
+			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf ../.debian.cache *")
+			exec_or_die("rm -f /var/cache/debian.cache && mv ../.debian.cache /var/cache/debian.cache")
 		end
 		chdir("../.jail")
 		exec_or_die("rm -rf ../.debootstrap")
@@ -231,19 +232,19 @@ filesystem["/run"] = { type="tmpfs", size="128M" }
 function mount_container()
 	if debug_enabled then print('mount_container()') end
 
-	exec("mount -n --bind --make-private . .")
-	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n --make-private -o rw --bind .filesystem .jail")
-	exec_or_die("mkdir -p .jail/proc && mount --make-private -t proc proc .jail/proc")
-	exec_or_die("mkdir -p .jail/sys && mount --make-private --bind /sys .jail/sys")
-	exec_or_die("mkdir -p .jail/dev && mount --make-private -t devtmpfs udev .jail/dev")
+	exec("mount -n --bind --make-rprivate --make-private . .")
+	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n --make-rprivate --make-private -o rw --bind .filesystem .jail")
+	exec_or_die("mkdir -p .jail/proc && mount --make-rprivate --make-private -t proc proc .jail/proc")
+	exec_or_die("mkdir -p .jail/sys && mount --make-rprivate --make-private --bind /sys .jail/sys")
+	exec_or_die("mkdir -p .jail/dev && mount --make-rprivate --make-private -t devtmpfs udev .jail/dev")
 	for target, mount in pairsByKeys(filesystem) do
 		if mount['type'] == "tmpfs" then
 			if not isDir(".jail" .. target) then
 				exec("mkdir -p .jail" .. target)
 			end
-			mount_opts = "-n --make-private "
+			mount_opts = "-n --make-rprivate --make-private "
 			if mount['size'] then
-				mount_opts = "-n --make-private -o size=" .. mount['size'] .. " "
+				mount_opts = "-n --make-rprivate --make-private -o size=" .. mount['size'] .. " "
 			end
 			exec_or_die("mount " .. mount_opts .. "-t tmpfs tmp" .. string.sub(tostring(mount),10) .. " .jail" .. target)
 		elseif mount['type'] == "map" then
@@ -251,7 +252,7 @@ function mount_container()
 				exec("mkdir -p .jail" .. target)
 			end
 			exec("mkdir -p " .. mount['path']);
-			exec_or_die("mount -n --make-private --bind " .. mount['path'] .. " .jail" .. target)
+			exec_or_die("mount -n --make-rprivate --make-private --bind " .. mount['path'] .. " .jail" .. target)
 		end
 	end
 	return 0
@@ -259,6 +260,7 @@ end
 
 function unmount_container()
 	if debug_enabled then print('unmount_container()') end
+	exec("umount -R " .. base_path ..  " >/dev/null 2>&1")
 	exec("umount -l -R " .. base_path ..  " >/dev/null 2>&1")
 	return 0
 end
@@ -266,7 +268,7 @@ end
 function lock_container()
 	if debug_enabled then print('lock_container()') end
 
-	exec_or_die("mount -n --make-private -o remount,ro --bind / /")
+	exec_or_die("mount -n --make-rprivate --make-private -o remount,ro --bind / /")
 	return 0
 end
 
