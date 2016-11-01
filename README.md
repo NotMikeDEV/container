@@ -1,5 +1,7 @@
 # Linux Container Building System
 
+Project Status: Pre-Pre-Pre-Alpha. I am actively developing the codebase and do push changes before testing them properly. Do not be surprised if an update deletes the entire contents of your server.
+
 ## Dependencies
 Lua requires readline library (libreadline-dev).
 Container building requires debootstrap.
