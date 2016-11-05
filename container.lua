@@ -73,7 +73,6 @@ end
 network = nil
 
 function IP_family(ip)
-	--return 4
     -- reject invalid
 	if ip == nil or type(ip) ~= "string" then
 		return nil
@@ -232,7 +231,7 @@ filesystem["/run"] = { type="tmpfs", size="128M" }
 function mount_container()
 	if debug_enabled then print('mount_container()') end
 
-	exec("mount -n --bind --make-rprivate --make-private . .")
+--	exec("mount -n --bind --make-rprivate --make-private . .")
 	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n --make-rprivate --make-private -o rw --bind .filesystem .jail")
 	exec_or_die("mkdir -p .jail/proc && mount --make-rprivate --make-private -t proc proc .jail/proc")
 	exec_or_die("mkdir -p .jail/sys && mount --make-rprivate --make-private --bind /sys .jail/sys")
@@ -260,15 +259,15 @@ end
 
 function unmount_container()
 	if debug_enabled then print('unmount_container()') end
-	exec("umount -R " .. base_path ..  " >/dev/null 2>&1")
-	exec("umount -l -R " .. base_path ..  " >/dev/null 2>&1")
+	exec("umount -R " .. base_path ..  "/.jail >/dev/null 2>&1")
+	exec("umount -l -R " .. base_path ..  "/.jail >/dev/null 2>&1")
 	return 0
 end
 
 function lock_container()
 	if debug_enabled then print('lock_container()') end
 
-	exec_or_die("mount -n --make-rprivate --make-private -o remount,ro --bind / /")
+	exec_or_die("mount -n -o remount,ro --bind / /")
 	return 0
 end
 
