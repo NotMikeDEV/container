@@ -66,7 +66,7 @@ end
 
 function install_package(pack)
 	if debug_enabled then print('install_package("' .. pack .. '")') end
-	exec_or_die("RUNLEVEL=1 apt-get install -y --force-yes " .. pack)
+	exec_or_die("RUNLEVEL=1 DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes " .. pack)
 	return 0
 end
 
