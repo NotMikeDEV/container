@@ -11,9 +11,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include "lua/lua.h"
-#include "lua/lauxlib.h"
-#include "lua/lualib.h"
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 #include <fcntl.h>
 
 #define RETURN_ERROR return __LINE__
@@ -60,9 +60,18 @@ static int ex_mkdir(lua_State *L)
   return 1;
 }
 
+/* pid/nil error */
+static int ex_fork(lua_State *L)
+{
+	int pid = fork();
+	lua_pushnumber(L, pid);
+	return 1;
+}
+
 const void* lua_functions[][2] = {
     {"chdir",      ex_chdir},
     {"mkdir",      ex_mkdir},
+    {"fork",      ex_fork},
     {"cwd",      ex_currentdir},
 {0,0} };
 void register_lua_functions(lua_State *L)
@@ -262,8 +271,12 @@ int init_network_child(lua_State *L)
 	return ret;
 }
 
+int init_building = 0;
+
 int init_network_needed(lua_State *L)
 {
+	if (init_building)
+		return 0;
 	return lua_exec_callback("init_network_needed", L);
 }
 
@@ -371,6 +384,12 @@ int start(void* args)
 	if (ret)
 	{
 		printf("Error %d starting container\n", ret);
+		return ret;
+	}
+	ret = lua_exec_callback("start_daemons", L);
+	if (ret)
+	{
+		printf("Error %d starting daemons\n", ret);
 		return ret;
 	}
 
@@ -535,7 +554,6 @@ void sig_handler(int sig)
 			if (sig == SIGINT)
 			{
 				kill(container_pid, SIGTERM);
-				kill(container_pid, SIGKILL);
 			}
 		}
 	}
@@ -561,7 +579,6 @@ int main (int argc, char* argv[]) {
 	signal(SIGABRT, sig_handler);
 	signal(SIGINT, sig_handler);
 	signal(SIGUSR2, sig_handler);
-	signal(SIGUSR1, sig_handler);
 	char command[PATH_MAX];
 	char filename[PATH_MAX];
 	char base_directory[PATH_MAX];
@@ -591,7 +608,7 @@ int main (int argc, char* argv[]) {
 	char* container_name = filename + (strlen(container_path)+1);
 	char* lua_path = malloc(strlen(container_path)*2+100);
 	sprintf(base_directory, "%s/.%s/", container_path, container_name);
-	sprintf(lua_path, "%s/?;%s/?.lua;/etc/container/?.lua", container_path, container_path);
+	sprintf(lua_path, "%s/?;%s/?.lua;/usr/local/container/?.lua", container_path, container_path);
 
 	lua_pushstring(L, filename);
 	lua_setglobal(L, "config");
@@ -639,6 +656,7 @@ int main (int argc, char* argv[]) {
 			printf("Terminate container first.\n");
 			RETURN_ERROR;
 		}
+		init_building = 1;
 		ret = ISOLATE(build_clean, L);
 		if (ret)
 			RETURN_ERROR;
@@ -651,6 +669,7 @@ int main (int argc, char* argv[]) {
 			printf("Container already running.\n");
 			RETURN_ERROR;
 		}
+		init_building = 1;
 		ret = ISOLATE(build, L);
 		if (ret)
 			RETURN_ERROR;
@@ -665,6 +684,7 @@ int main (int argc, char* argv[]) {
 		}
 		if (need_build(L))
 		{
+			init_building = 1;
 			printf("Container needs to be built.\n");
 			ret = ISOLATE(build_clean, L);
 			if (ret)
@@ -673,6 +693,7 @@ int main (int argc, char* argv[]) {
 			if (ret)
 				RETURN_ERROR;
 		}
+		init_building = 0;
 		int tid = SPAWN(start, L);
 		if (tid && is_running(L, 0))
 			printf("Container running\n");
@@ -693,7 +714,10 @@ int main (int argc, char* argv[]) {
 		done_something = 1;
 	}
 	if (!ret && !done_something)
+	{
 		print_usage(argv[1]);
+		RETURN_ERROR;
+	}
 	lua_close(L);
 	return 0;
 }

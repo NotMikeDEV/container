@@ -3,21 +3,21 @@
 Project Status: Pre-Pre-Pre-Alpha. I am actively developing the codebase and do push changes before testing them properly. Do not be surprised if an update deletes the entire contents of your server.
 
 ## Dependencies
-Lua requires readline library (libreadline-dev).
+Requires readline library (libreadline-dev).
 Container building requires debootstrap.
+Tinc networking requires tinc on the host.
 In theory if you have debootstrap and other required tools it should work on any linux kernel with namespace support, but only Debian is supported.
 
-## Debian Install from source
-    apt-get install build-essential git debootstrap libreadline-dev
-    git clone https://github.com/notmike-uk/container.git
-    cd container
-    make install
+## Debian Install
+	apt-get install build-essential git debootstrap libreadline-dev tinc
+	git clone https://github.com/notmike-uk/container.git
+	cd container
+	make install
 
-## Done
-Get it working
+## Docs
+Run 'make doc' to compile the documentation using LDoc.
 
-## Todo
-WTFM
+Run 'make doc_server' to launch a web server on port 8092 containing the documentation.
 
 ## Quick Overview
 This is basically a glorified wrapper around the linux namespaces functionality, which is pretty much “chroot on steroids”.

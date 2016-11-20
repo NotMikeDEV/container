@@ -1,8 +1,9 @@
-#!/usr/sbin/container
-require("templates/bind")
-require("templates/nat64")
+#!/usr/local/sbin/container
+---Basic NAT64/DNS64 Gateway.
+require("module/network")
+require("module/nat64")
+require("module/bind")
 
-request_IP("fc00::53", {nat=true})
-nat64.ipv4="100.64.64.64"
-nat64.prefix="64:ff9b::/96"
+--Add NATED IPv4 and IPv6
+nat64:SetNAT64{ipv4='100.99.98.64', prefix='fd64::/96'}
 bind.nat64_prefix = nat64.prefix
