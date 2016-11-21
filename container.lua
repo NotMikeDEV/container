@@ -1,7 +1,5 @@
 ---Global API functions.
 --@topic Global_Environment
-debian_mirror = "http://debian.linuxship.net/debian";
-debian_cache_file = "/usr/local/container/debian.cache";
 
 math.randomseed(os.time() + (os.clock()*1000000))
 
@@ -51,7 +49,7 @@ function die(reason)
 	os.exit(1)
 end
 
-filesystems = {}
+local filesystems = {}
 
 ---Mount point.
 --@param type string Type of mount, "map" or "tmpfs".
@@ -148,7 +146,7 @@ function dirname(name)
 	return name:sub(0,index)
 end
 
-debug_table=nil
+local debug_table=nil
 ---Enable debugging.
 --@param filter string Function to debug, nil for all.
 function enable_debug(filter)
@@ -187,8 +185,7 @@ function background()
 	return 0
 end
 
-nameservers=nil
-config_files = {}
+local nameservers=nil
 ---Callback executed to write configuration files.
 function apply_config()
 	debug_print('apply_config', 'configure nameservers')
@@ -215,11 +212,6 @@ function apply_config()
 			resolvconf = resolvconf .. "nameserver " .. server .. "\n"
 		end
 		if resolvconf then write_file("etc/resolv.conf", resolvconf) end
-	end
-	for target, content in pairs(config_files) do
-		debug_print('apply_config', target)
-		exec("mkdir -p " .. dirname(target))
-		write_file(target, content)
 	end
 	return 0
 end
@@ -254,28 +246,37 @@ function need_build()
 	return 0
 end
 
-arch = exec("uname -m", true)
-arch = string.gsub(arch, "\n", "")
-if string.find(arch, "x86_64") then arch = "amd64" end
-if string.find(arch, "i686") then arch = "i386" end
+debian = {}
+debian.mirror = "http://debian.linuxship.net/debian";
+debian.arch = exec("uname -m", true)
+debian.arch = string.gsub(debian.arch, "\n", "")
+if debian.arch:find("x86_64") then debian.arch = "amd64" end
+if debian.arch:find("i686") then debian.arch = "i386" end
+debian.cache_file = "/usr/local/container/debian.cache." .. debian.arch;
+debian.cache_URL = "http://cache.linuxship.net/debian.cache." .. debian.arch;
 
 function build()
 	debug_print("build", "EXEC")
-	if not isFile(debian_cache_file) then
+	if not isFile(debian.cache_file) then
+		print("Downloading debian cache...")
+		local suffix = '.' .. os.time() .. "." .. math.random(10000,99999)
+		exec("( wget -c -N " .. debian.cache_URL .. " -O " .. debian.cache_file .. suffix .. " && mv " .. debian.cache_file .. suffix .. " " .. debian.cache_file .. " ) || rm -f " .. debian.cache_file .. suffix)
+	end
+	if not isFile(debian.cache_file) then
 		print("Building debian cache...")
 		mkdir("../.debootstrap")
 		chdir("../.debootstrap")
-		exec_or_die("debootstrap  --include=iproute2,net-tools stable . " .. debian_mirror)
+		exec_or_die("debootstrap  --include=iproute2,net-tools stable . " .. debian.mirror)
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
 			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf ../.debian.cache *")
-			exec_or_die("rm -f /var/cache/debian.cache && mv ../.debian.cache " .. debian_cache_file)
+			exec_or_die("rm -f /var/cache/debian.cache && mv ../.debian.cache " .. debian.cache_file)
 		end
 		chdir("../.jail")
 		exec_or_die("rm -rf ../.debootstrap")
 	end
 	print("Installing debian from cache...")
-	exec("tar -jxf " .. debian_cache_file)
+	exec("tar -jxf " .. debian.cache_file)
 	if not isFile("etc/debian_version") then die("Error extracting debian image.") end
 	print("Updating...")
 	exec_or_die("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
