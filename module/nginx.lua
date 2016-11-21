@@ -8,6 +8,7 @@ nginx={
 
 ---Website configuration.
 --@field hostname string Hostname of website.
+--@field[opt] port integer Port to listen on.
 --@field[opt] root string Path to document root.
 --@table website
 
@@ -21,6 +22,7 @@ function nginx:AddWebsite(website)
 
 	if not website.hostname then website.hostname = '' end
 	if not website.port then website.port = 80 end
+	if not website.root then website.root = "/var/www" end
 	if website.hostname:find(":") then
 		website.port = website.hostname:sub(website.hostname:find(":")+1)
 		website.hostname = website.hostname:sub(0, website.hostname:find(":")-1)
@@ -82,7 +84,7 @@ function nginx:AddWebsite(website)
 		return self
 	end
 	
-	nginx.config.websites[website.hostname or ':8080']=website
+	nginx.config.websites[website.hostname .. ':' .. website.port]=website
 	return website
 end
 
@@ -141,9 +143,8 @@ end
 function apply_config()
 	if not nginx.config.websites then return 0 end
 	local config = ""
-	for host, settings in pairsByKeys(nginx.config.websites) do
-		if not settings.root then settings.root = "/var/www" end
-		config = config .. nginx.generate_config(settings)
+	for _, website in pairsByKeys(nginx.config.websites) do
+		config = config .. nginx.generate_config(website)
 	end
 	write_file("/etc/nginx/sites-enabled/container", config)
 	return 0

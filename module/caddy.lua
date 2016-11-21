@@ -7,6 +7,7 @@ caddy.config = {}
 
 ---Website configuration.
 --@field hostname string Hostname of website.
+--@field[opt] port integer Port to listen on.
 --@field[opt] root string Path to document root.
 --@table website
 
@@ -20,6 +21,7 @@ function caddy:AddWebsite(website)
 
 	if not website.hostname then website.hostname = '' end
 	if not website.port then website.port = 80 end
+	if not website.root then website.root = "/var/www" end
 	if website.hostname:find(":") then
 		website.port = website.hostname:sub(website.hostname:find(":")+1)
 		website.hostname = website.hostname:sub(0, website.hostname:find(":") -1)
@@ -80,7 +82,7 @@ function caddy:AddWebsite(website)
 		return self
 	end
 	
-	caddy.config.websites[website.hostname or ':8080']=website
+	caddy.config.websites[website.hostname .. ':' .. website.port]=website
 	return website
 end
 
@@ -156,12 +158,12 @@ function apply_config()
 	if not caddy.config.websites then return 0 end
 	local config = ""
 	debug_print('apply_config', "Generating Caddy config.")
-	for host, settings in pairsByKeys(caddy.config.websites) do
-		debug_print('apply_config', host .. ':' .. settings.port)
-		config = config .. host .. ':' .. settings.port .. " {\n"
-		if not settings.root then settings.root = "/var/www" end
-		config = config .. "\troot " .. settings.root .. "\n"
-		config = config .. caddy.generate_config(settings)
+	for _, website in pairsByKeys(caddy.config.websites) do
+		debug_print('apply_config', website.hostname .. ':' .. website.port)
+		config = config .. website.hostname .. ':' .. website.port .. " {\n"
+		if not website.root then website.root = "/var/www" end
+		config = config .. "\troot " .. website.root .. "\n"
+		config = config .. caddy.generate_config(website)
 		config = config .. "\n}\n\n"
 	end
 	write_file("/etc/Caddyfile", config)
