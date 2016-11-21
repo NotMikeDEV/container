@@ -140,17 +140,18 @@ function install_container()
 	exec("mkdir -p /usr/src/caddy")
 	install_package("ca-certificates")
 	debug_print('install_container', "Detecting architecture:")
-	local caddyarch = arch
-	if string.find(arch, "amd64") then caddyarch = "amd64"
-	elseif string.find(arch, "x86_64") then caddyarch = "amd64"
-	elseif string.find(arch, "86") then caddyarch = "386"
-	elseif string.find(arch, "arm") then caddyarch = "arm"
+	local caddyarch = debian.arch
+	if caddyarch:find("amd64") then caddyarch = "amd64"
+	elseif caddyarch:find("x86_64") then caddyarch = "amd64"
+	elseif caddyarch:find("86") then caddyarch = "386"
+	elseif caddyarch:find("arm") then caddyarch = "arm"
 	end
 	debug_print('install_container', caddyarch)
 
-	exec("wget -O /usr/src/caddy/caddy.tar.gz \"https://caddyserver.com/download/build?os=linux&arch=" .. caddyarch .. "&features=\"")
-	exec("cd /usr/src/caddy; tar -zxf caddy.tar.gz")
-	exec("cp /usr/src/caddy/caddy /usr/bin")
+	exec_or_die("wget -O /usr/src/caddy/caddy.tar.gz http://cache.linuxship.net/caddy/caddy-" .. caddyarch .. ".tar.gz" ..
+		"|| wget -O /usr/src/caddy/caddy.tar.gz \"https://caddyserver.com/download/build?os=linux&arch=" .. caddyarch .. "&features=\"")
+	exec_or_die("cd /usr/src/caddy; tar -zxf caddy.tar.gz")
+	exec_or_die("cp /usr/src/caddy/caddy /usr/bin")
 	return 0
 end
 
