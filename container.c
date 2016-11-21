@@ -68,10 +68,35 @@ static int ex_fork(lua_State *L)
 	return 1;
 }
 
+/* sleep */
+static int ex_sleep(lua_State *L)
+{
+	double duration = lua_tonumber(L, 1);
+	printf("%f %d %d\n", duration, duration,(long)(1000000*duration));
+	if (duration < 600)
+	{
+		usleep((long)(1000000*duration));
+		return 1;
+	}
+
+	time_t starttime = time(NULL);
+	time_t endtime = time(NULL) + duration;
+	while ((endtime - time(NULL))>0)
+	{
+		int remain = endtime - time(NULL);
+		if (remain > 300)
+			remain = 300;
+		if (sleep(remain))
+			return 1;
+	}
+	return 1;
+}
+
 const void* lua_functions[][2] = {
     {"chdir",      ex_chdir},
     {"mkdir",      ex_mkdir},
     {"fork",      ex_fork},
+    {"sleep",      ex_sleep},
     {"cwd",      ex_currentdir},
 {0,0} };
 void register_lua_functions(lua_State *L)
