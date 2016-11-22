@@ -67,6 +67,7 @@ function caddy:AddWebsite(website)
 	---Proxy rule.
 	--@field source string Source Path.
 	--@field target string Target to proxy to.
+	--@field hostname[opt] string Host: header to send to server.
 	--@table proxy
 
 	---Add proxy rule to the website.
@@ -119,7 +120,17 @@ function caddy.generate_config(website)
 	if website.proxies then
 		for source, data in pairsByKeys(website.proxies) do
 			debug_print('caddy.generate_config', "Proxy " .. source)
-			config = config .. "\tproxy " .. source .. " " .. data.target .. "\n"
+			config = config .. "\tproxy " .. source .. " " .. data.target .. " {\n"
+			if data.hostname then
+				config = config .. "\t\theader_upstream Host " .. data.hostname .. "\n"
+			else
+				config = config .. "\t\theader_upstream Host {host}\n"
+			end
+			config = config .. "\t\theader_upstream X-Real-IP {remote}\n"
+			config = config .. "\t\theader_upstream X-Forwarded-For {remote}\n"
+			config = config .. "\t\theader_upstream X-Forwarded-Proto {scheme}\n"
+			config = config .. "\t}\n"
+
 		end
 	end
 	if caddy.config.fastcgi then
