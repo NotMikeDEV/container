@@ -228,3 +228,15 @@ function init_network_child()
 	debug_print('init_network_child', "return 0")
 	return 0
 end
+
+function apply_config()
+	if network.nameservers then
+		debug_print('init_network_child', "Write Nameservers to /etc/resolv.conf")
+		local resolvconf=""
+		for _, nameserver in pairs(network.nameservers) do
+			resolvconf = resolvconf .. "nameserver " .. nameserver .. "\n"
+		end
+		write_file('./etc/resolv.conf', resolvconf)
+	end
+	return 0
+end
