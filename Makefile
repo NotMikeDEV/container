@@ -13,9 +13,10 @@ INSTALL_PATH=$(PREFIX)/sbin
 $(PREFIX)/lib/liblua.a: $(PREFIX)/bin/lua
 
 $(PREFIX)/bin/lua:
-	-git clone --depth 1 https://github.com/lua/lua.git
-	$(MAKE) -C lua linux install
-	rm -rf lua
+	wget -O lua-5.3.3.tar.gz http://www.lua.org/ftp/lua-5.3.3.tar.gz
+	tar zxf lua-5.3.3.tar.gz
+	$(MAKE) -C lua-5.3.3 linux install
+	rm -rf lua-5.3.3
 
 $(LUA_DIR)/ldoc.lua:
 	@echo "Run $(MAKE) install_ldoc to install LDoc first."
@@ -63,7 +64,7 @@ defaultlua.o:
 	ld -r -b binary -o defaultlua.o container.lua
 
 clean:
-	-rm -rf defaultlua.o container doc/* lua LDoc luafilesystem Penlight
+	-rm -rf defaultlua.o container doc/* lua-5.3.3 LDoc luafilesystem Penlight
 	-./examples/all.sh clean
 	-rm -rf examples/.*lua
 	-chmod 0764 . -R
