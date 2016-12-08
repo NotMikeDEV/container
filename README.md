@@ -1,5 +1,4 @@
-# Linux Container Building System
-
+# Linux Container Building System [![Build Status](https://travis-ci.org/notmike-uk/container.svg?branch=master)](https://travis-ci.org/notmike-uk/container)
 Project Status: Pre-Pre-Pre-Alpha. I am actively developing the codebase and do push changes before testing them properly. Do not be surprised if an update deletes the entire contents of your server.
 
 ## Dependencies
