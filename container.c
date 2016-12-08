@@ -6,6 +6,7 @@
 #include <string.h>
 #include <libgen.h>
 #include <time.h>
+#include <errno.h>
 #include <sys/mount.h>
 #include <sys/ptrace.h>
 #include <sys/types.h>
@@ -359,10 +360,16 @@ int start(void* args)
 	child_wait("start");
 	setsid();
 	unlink("../console");
-	if (mknod("../console", 010755, 0) < 0)
+	if (mkfifo("../console", 0755) < 0)
+	{
+		printf("mkfifo() failed %u %s.\n", errno, strerror(errno));
 		RETURN_ERROR;
+	}
 	if (( fd = open("../console", O_RDWR )) < 0)
+	{
+		printf("open fifo failed %u %s.\n", errno, strerror(errno));
 		RETURN_ERROR;
+	}
 	dup2(fd, 1);
 	dup2(fd, 2);
 
