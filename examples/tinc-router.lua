@@ -4,7 +4,8 @@ require("module/tinc")
 
 --Add tinc interface
 local TincInterface = tinc:AddInterface{name='tinc_testnet'}
-TincInterface:LocalAddress{ipv6='2001:470:1aac::ffff'}
+TincInterface:LocalAddress{ipv6='fd00::123'}
+TincInterface:AddIP{ipv6='fd00::123', nat=true}
 --Add default route from tinc network to host.
 TincInterface:AddPrefix{ipv4='0.0.0.0/0', ipv6='::/0'}
 --Route test networks to tinc.

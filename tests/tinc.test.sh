@@ -2,6 +2,8 @@
 ../examples/tinc-router.lua restart || exit 1
 ../examples/tinc-vm.lua restart || exit 1
 
+sleep 5
+
 ping -c 1 -w 5 100.100.0.2 || exit 1
 ping6 -c 1 -w 5 fcfc::2 || exit 1
 
