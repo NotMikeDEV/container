@@ -117,6 +117,8 @@ function nginx.generate_config(website)
 			config = config .. "\t\tproxy_pass " .. data.target .. ";\n"
 			config = config .. "\t\tproxy_redirect " .. data.target .. " " .. source .. ";\n"
 			if data.hostname then config = config .. "\t\tproxy_set_header Host " .. data.hostname .. ";\n" end
+			config = config .. "\t\tproxy_set_header X-Real-IP $remote_addr;\n"
+			config = config .. "\t\tproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n"
 			config = config .. "\t}\n"
 		end
 	end
