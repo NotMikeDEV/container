@@ -307,17 +307,17 @@ function mount_container()
 	debug_print('mount_container', 'EXEC')
 
 	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n --make-rprivate --make-private -o rw --bind .filesystem .jail")
-	exec_or_die("mkdir -p .jail/proc && mount --make-rprivate --make-private -t proc proc .jail/proc")
+	exec_or_die("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
 	exec_or_die("mkdir -p .jail/sys && mount --make-rprivate --make-private --bind /sys .jail/sys")
-	exec_or_die("mkdir -p .jail/dev && mount --make-rprivate --make-private -t devtmpfs udev .jail/dev")
-	exec_or_die("mkdir -p .jail/dev/pts && mount --make-rprivate --make-private -t devpts devpts .jail/dev/pts")
+	exec_or_die("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
+	exec_or_die("mkdir -p .jail/dev/pts && mount -t devpts devpts .jail/dev/pts")
 	for target, mount in pairsByKeys(filesystems) do
 		debug_print('mount_container', mount['type'] .. ':' .. target)
 		if mount['type'] == "tmpfs" then
 			if not isDir(".jail/" .. target) then
 				exec("mkdir -p .jail/" .. target)
 			end
-			mount_opts = "-n --make-rprivate --make-private "
+			mount_opts = "-n "
 			if mount['size'] then
 				mount_opts = mount_opts .. "-o size=" .. mount['size'] .. " "
 			end
