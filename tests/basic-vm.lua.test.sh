@@ -13,9 +13,9 @@ EXISTINGKEYS=$(cat ../examples/.basic-vm.lua/root/.ssh/authorized_keys | grep -v
 echo $EXISTINGKEYS > ../examples/.basic-vm.lua/root/.ssh/authorized_keys
 echo $MYKEY >> ../examples/.basic-vm.lua/root/.ssh/authorized_keys
 echo "SSH IPv4"
-ssh -oStrictHostKeyChecking=no 100.99.98.1 exit 0 >/dev/null 2>&1 || exit 1
+ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no 100.99.98.1 exit 0 >/dev/null 2>&1 || exit 1
 echo "SSH IPv6"
-ssh -oStrictHostKeyChecking=no fd00::1 exit 0 >/dev/null 2>&1 || exit 1
+ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no fd00::1 exit 0 >/dev/null 2>&1 || exit 1
 
 echo "Tests complete."
 exit 0

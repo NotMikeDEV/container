@@ -16,9 +16,9 @@ EXISTINGKEYS=$(cat ../examples/.tinc-vm.lua/root/.ssh/authorized_keys | grep -v 
 echo $EXISTINGKEYS > ../examples/.tinc-vm.lua/root/.ssh/authorized_keys
 echo $MYKEY >> ../examples/.tinc-vm.lua/root/.ssh/authorized_keys
 echo "SSH IPv4"
-ssh -oStrictHostKeyChecking=no 100.100.0.2 exit 0 >/dev/null 2>&1 || exit 1
+ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no 100.100.0.2 exit 0 >/dev/null 2>&1 || exit 1
 echo "SSH IPv6"
-ssh -oStrictHostKeyChecking=no fcfc::2 exit 0 >/dev/null 2>&1 || exit 1
+ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no fcfc::2 exit 0 >/dev/null 2>&1 || exit 1
 
 echo "Tests complete."
 exit 0
