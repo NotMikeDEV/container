@@ -139,29 +139,29 @@ function run()
 		exec_or_die("ifconfig " .. interface.name .. " up")
 
 		if interface.default_route then
-			exec_or_die("ip -4 route add default dev " .. interface.name)
-			exec_or_die("ip -6 route add default dev " .. interface.name)
+			exec_or_die("ip -4 route add default dev " .. interface.name .. "|| ip route add 0.0.0.0/0 dev " .. interface.name)
+			exec_or_die("ip -6 route add default dev " .. interface.name .. "|| ip route add ::/0 dev " .. interface.name)
 		end
 
 		if interface.addresses then for _, addr in pairs(interface.addresses) do
 			if addr.ipv4 then
 				debug_print('run', "add IPv4 address " .. addr.ipv4)
-				exec_or_die("ip -4 addr add " .. addr.ipv4 .. " dev " .. interface.name)
+				exec_or_die("ip -4 addr add " .. addr.ipv4 .. " dev " .. interface.name .. " || ip addr add " .. addr.ipv4 .. " dev " .. interface.name)
 			end
 			if addr.ipv6 then
 				debug_print('run', "add IPv6 address " .. addr.ipv6)
-				exec_or_die("ip -6 addr add " .. addr.ipv6 .. " dev " .. interface.name)
+				exec_or_die("ip -6 addr add " .. addr.ipv6 .. " dev " .. interface.name .. " || ip addr add " .. addr.ipv6 .. " dev " .. interface.name)
 			end
 		end end
 
 		if interface.routes then for _, route in pairs(interface.routes) do
 			if route.ipv4 then
 				debug_print('run', "add IPv4 route " .. route.ipv4)
-				exec_or_die("ip -4 route add " .. route.ipv4 .. " dev " .. interface.name)
+				exec_or_die("ip -4 route add " .. route.ipv4 .. " dev " .. interface.name .. " || ip route add " .. route.ipv4 .. " dev " .. interface.name)
 			end
 			if route.ipv6 then
 				debug_print('run', "add IPv6 route " .. route.ipv6)
-				exec_or_die("ip -6 route add " .. route.ipv6 .. " dev " .. interface.name)
+				exec_or_die("ip -6 route add " .. route.ipv6 .. " dev " .. interface.name .. "|| ip route add " .. route.ipv6 .. " dev " .. interface.name)
 			end
 		end end
 

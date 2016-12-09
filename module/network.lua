@@ -88,43 +88,44 @@ function init_network_host(pid)
 	local interface_count = 0
 	for name, interface in pairs(network.interfaces) do
 		interface_count = interface_count + 1
-		debug_print('init_network_host', "Interface " .. interface_count .. ": c" .. string.format("%.0f", pid) .. '_' .. interface_count .. " > " .. interface.name .. " - " .. interface.type)
+		local NIC = "c" .. string.format("%.0f", pid) .. '_' .. interface_count
+		debug_print('init_network_host', "Interface " .. interface_count .. ": " .. NIC .. " > " .. interface.name .. " - " .. interface.type)
 		if interface.type == "ethernet" then
-			if not exec("ip link add name c" .. string.format("%.0f", pid) .. '_' .. interface_count .. " type veth peer name " .. interface.name) then return 1 end
-			if not exec("ifconfig c" .. string.format("%.0f", pid) .. '_' .. interface_count .. " up") then return 1 end
-			if not exec("ip -6 addr add fe80::1/128 dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
-			if not exec("ip -4 addr add 100.64.0.0/32 dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
+			if not exec("ip link add name " .. NIC .. " type veth peer name " .. interface.name) then return 1 end
+			if not exec("ifconfig " .. NIC .. " up") then return 1 end
+			if not exec("ip -4 addr add 100.64.0.0/32 dev " .. NIC .. " || ip addr add 100.64.0.0/32 dev " .. NIC) then return 1 end
+			if not exec("ip -6 addr add fe80::1/128 dev " .. NIC .." || ip addr add fe80::1/128 dev " .. NIC) then return 1 end
 			if not exec("ip link set dev " .. interface.name .. " netns " .. string.format("%.0f", pid)) then return 1 end
 			local int_v4=nil
 			if interface.addresses then for _, addr in pairs(interface.addresses) do
 				if addr.ipv4 then
 					int_v4 = addr.ipv4
 					debug_print('init_network_host', "add IPv4 address " .. addr.ipv4)
-					if not exec("ip -4 route add " .. addr.ipv4 .. "/32 dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
+					if not exec("ip -4 route add " .. addr.ipv4 .. "/32 dev " .. NIC .. " || ip route add " .. addr.ipv4 .. "/32 dev " .. NIC) then return 1 end
 					exec("iptables -t nat -D POSTROUTING -s " .. addr.ipv4 .. " -j MASQUERADE 2>/dev/null")
 					if (addr.nat) then if not exec("iptables -t nat -I POSTROUTING -s " .. addr.ipv4 .. " -j MASQUERADE") then return 1 end end
 					if (addr.proxyarp) then exec("arp -i " .. addr.proxyarp .. " -Ds " .. addr.ipv4 .. " " .. addr.proxyarp .. " netmask 255.255.255.255 pub") end
 				end
 				if addr.ipv6 then
 					debug_print('init_network_host', "add IPv6 address " .. addr.ipv6)
-					if not exec("ip -6 route add " .. addr.ipv6 .. "/128 dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
+					if not exec("ip -6 route add " .. addr.ipv6 .. "/128 dev " .. NIC .. " || ip route add " .. addr.ipv6 .. "/128 dev " .. NIC) then return 1 end
 					exec("ip6tables -t nat -D POSTROUTING -s " .. addr.ipv6 .. " -j MASQUERADE 2>/dev/null")
 					if (addr.nat) then if not exec("ip6tables -t nat -I POSTROUTING -s " .. addr.ipv6 .. " -j MASQUERADE") then return 1 end end
-					if (addr.proxyarp) then exec("ip -6 neigh add proxy " .. addr.ipv6 .. " dev " .. addr.proxyarp) end
+					if (addr.proxyarp) then exec("ip -6 neigh add proxy " .. addr.ipv6 .. " dev " .. addr.proxyarp .. " || ip neigh add proxy " .. addr.ipv6 .. " dev " .. addr.proxyarp) end
 				end
 			end end
 			if interface.prefixes then for _, prefix in pairs(interface.prefixes) do
 				if prefix.ipv4 then
 					debug_print('init_network_host', "route IPv4 prefix " .. prefix.ipv4)
 					if int_v4 then
-						if not exec("ip -4 route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
+						if not exec("ip -4 route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev " .. NIC .. " || ip route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev " .. NIC) then return 1 end
 					else
-						if not exec("ip -4 route add " .. prefix.ipv4 .. " dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
+						if not exec("ip -4 route add " .. prefix.ipv4 .. " dev " .. NIC .. " || ip route add " .. prefix.ipv4 .. " dev " .. NIC) then return 1 end
 					end
 				end
 				if prefix.ipv6 then
 					debug_print('init_network_host', "route IPv6 prefix " .. prefix.ipv6)
-					if not exec("ip -6 route add " .. prefix.ipv6 .. " via fe80::2 dev c" .. string.format("%.0f", pid) .. '_' .. interface_count) then return 1 end
+					if not exec("ip -6 route add " .. prefix.ipv6 .. " via fe80::2 dev " .. NIC .. " || ip route add " .. prefix.ipv6 .. " via fe80::2 dev " .. NIC) then return 1 end
 				end
 			end end
 			debug_print('init_network_host', "Interface " .. interface_count)
