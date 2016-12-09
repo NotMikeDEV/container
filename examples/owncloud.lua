@@ -1,5 +1,7 @@
 #!/usr/local/sbin/container
 ---Owncloud server.
+enable_debug(nil) -- Remove this line for production.
+
 require("module/caddy")
 require("module/php")
 require("module/mysql")

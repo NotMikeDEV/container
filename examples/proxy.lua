@@ -1,5 +1,7 @@
 #!/usr/local/sbin/container
 ---Simple web proxy.
+enable_debug(nil) -- Remove this line for production.
+
 require("module/nginx")
 
 --Add webserver.

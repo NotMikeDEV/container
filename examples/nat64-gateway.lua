@@ -1,5 +1,7 @@
 #!/usr/local/sbin/container
 ---Basic NAT64/DNS64 Gateway.
+enable_debug(nil) -- Remove this line for production.
+
 require("module/network")
 require("module/nat64")
 require("module/bind")

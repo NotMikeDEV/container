@@ -1,5 +1,7 @@
 #!/usr/local/sbin/container
 ---Simple web server to host the project documentation on port 8092.
+enable_debug(nil) -- Remove this line for production.
+
 require("module/nginx")
 
 --Add webserver.

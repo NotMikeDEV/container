@@ -1,5 +1,7 @@
 #!/usr/local/sbin/container
 ---Basic container with own network.
+enable_debug(nil) -- Remove this line for production.
+
 require("module/network")
 require("module/sshd")
 
