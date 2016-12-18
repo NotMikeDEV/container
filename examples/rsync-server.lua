@@ -2,9 +2,9 @@
 ---Basic RSync server.
 enable_debug(nil) -- Remove this line for production.
 
-require("module/network")
 require("module/rsync")
-enable_debug(nil)
+require("module/autoip")
+autoip:AssignIP("rsync-server", 4)
 
 --Add NATED IPv4 and IPv6
 network:AddIP{ipv4='100.99.77.1', ipv6='fc00::99:77:1', nat=true}

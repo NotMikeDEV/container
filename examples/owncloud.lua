@@ -6,6 +6,8 @@ require("module/caddy")
 require("module/php")
 require("module/mysql")
 require("module/owncloud")
+require("module/autoip")
+autoip:AssignIP("owncloud", 2)
 
 mysql:Database{database='owncloud'}:Grant{user='owncloud',password='owncloud'}
 

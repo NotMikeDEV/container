@@ -1,16 +1,17 @@
 #!/bin/bash
 ../examples/nat64-gateway.lua restart || exit 1
+. ./autoip.sh nat64
 
-ping -c 1 -w 5 100.99.98.64 || exit 1
-ping6 -c 1 -w 5 fd64::100.99.98.64 || exit 1
+ping -c 1 -w 5 $IPv4 || exit 1
+ping6 -c 1 -w 5 $IPv6_PREFIX || exit 1
 echo
 let END=$(date +"%s")+10
 while [ $END -gt $(date +"%s") ]; do
-	DNS=`nslookup -retry=1 -timeout=1 -query=AAAA ipv4.google.com 100.99.98.64 | grep "fd64::" | grep "has AAAA address"`
+	DNS=`nslookup -retry=1 -timeout=1 -query=AAAA ipv4.google.com $IPv4 | grep ":A:64:" | grep "has AAAA address"`
 	if [ ! "$DNS" == "" ]; then
 		echo $DNS
 		echo
-		ping6 -c 1 -w 5 fd64::8.8.8.8 || exit 1
+		ping6 -c 1 -w 5 `echo $IPv6_PREFIX | cut -d ":" -f 1,2,3,4,5,6`:8.8.8.8 || exit 1
 		exit 0
 	else
 		echo "DNS lookup failed."
