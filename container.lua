@@ -155,9 +155,9 @@ function enable_debug(filter)
 	debug_table[filter] = true
 end
 
-function debug_print(filter, message)
+function debug_print(filter, ...)
 	if debug_table and ( debug_table[filter] or debug_table['all'] ) then
-		print(filter, message)
+		print(filter, ...)
 	end
 end
 

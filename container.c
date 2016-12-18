@@ -640,7 +640,7 @@ int main (int argc, char* argv[]) {
 	char* container_name = filename + (strlen(container_path)+1);
 	char* lua_path = malloc(strlen(container_path)*2+100);
 	sprintf(base_directory, "%s/.%s/", container_path, container_name);
-	sprintf(lua_path, "%s/?;%s/?.lua;/usr/local/container/?.lua", container_path, container_path);
+	sprintf(lua_path, "./?;%s/?;%s/?.lua;/usr/local/container/?.lua", container_path, container_path);
 
 	lua_pushstring(L, filename);
 	lua_setglobal(L, "config");
