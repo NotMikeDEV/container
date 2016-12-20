@@ -73,7 +73,6 @@ static int ex_fork(lua_State *L)
 static int ex_sleep(lua_State *L)
 {
 	double duration = lua_tonumber(L, 1);
-	printf("%f %d %d\n", duration, duration,(long)(1000000*duration));
 	if (duration < 600)
 	{
 		usleep((long)(1000000*duration));
