@@ -358,19 +358,20 @@ int start(void* args)
 	setpgid(getpid(), 0); 
 	child_wait("start");
 	setsid();
-	unlink("../console");
-	if (mkfifo("../console", 0755) < 0)
+	unlink("../.console");
+	if (mkfifo("../.console", 0755) < 0)
 	{
 		printf("mkfifo() failed %u %s.\n", errno, strerror(errno));
 		RETURN_ERROR;
 	}
-	if (( fd = open("../console", O_RDWR )) < 0)
+	if (( fd = open("../.console", O_RDWR )) < 0)
 	{
 		printf("open fifo failed %u %s.\n", errno, strerror(errno));
 		RETURN_ERROR;
 	}
 	dup2(fd, 1);
 	dup2(fd, 2);
+	system("cat ../.console >> ../.log &");
 
 	int ret = init_environment(L, 0);
 	if (ret)
