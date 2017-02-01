@@ -118,7 +118,7 @@ function init_network_host(pid)
 				if prefix.ipv4 then
 					debug_print('init_network_host', "route IPv4 prefix " .. prefix.ipv4)
 					if int_v4 then
-						if not exec("ip -4 route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev " .. NIC .. " || ip route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev " .. NIC) then return 1 end
+						if not exec("ip -4 route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev " .. NIC .. " onlink || ip route add " .. prefix.ipv4 .. " via " .. int_v4 .. " dev " .. NIC .. " onlink") then return 1 end
 					else
 						if not exec("ip -4 route add " .. prefix.ipv4 .. " dev " .. NIC .. " || ip route add " .. prefix.ipv4 .. " dev " .. NIC) then return 1 end
 					end
