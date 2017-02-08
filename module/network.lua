@@ -93,7 +93,7 @@ function init_network_host(pid)
 		if interface.type == "ethernet" then
 			if not exec("ip link add name " .. NIC .. " type veth peer name " .. interface.name) then return 1 end
 			if not exec("ifconfig " .. NIC .. " up") then return 1 end
-			if not exec("ip -4 addr add 100.64.0.0/32 dev " .. NIC .. " || ip addr add 100.64.0.0/32 dev " .. NIC) then return 1 end
+			if not exec("arp -i " .. NIC .. " -Ds 100.64.0.0 " .. NIC .. " netmask 255.255.255.255 pub || ip -4 addr add 100.64.0.0/32 dev " .. NIC .. " || ip addr add 100.64.0.0/32 dev " .. NIC) then return 1 end
 			if not exec("ip -6 addr add fe80::1/128 dev " .. NIC .." || ip addr add fe80::1/128 dev " .. NIC) then return 1 end
 			if not exec("ip link set dev " .. interface.name .. " netns " .. string.format("%.0f", pid)) then return 1 end
 			local int_v4=nil
