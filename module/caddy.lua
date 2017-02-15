@@ -82,6 +82,24 @@ function caddy:AddWebsite(website)
 		self.proxies[proxy.source] = proxy
 		return self
 	end
+
+	---Websocket application.
+	--@field source string Source Path.
+	--@field target string Target application.
+	--@table websocket
+
+	---Add websocket rule to the website.
+	--@see websocket
+	--@see website
+	--@param websocket
+	--@return website
+	--@usage local WebSite = caddy:AddWebsite{hostname='hostname', root='/path/to/docroot'}
+	--WebSite:AddWebsocket{source='/cat', target='/bin/cat'}
+	function website:AddWebsocket(websocket)
+		if not self.websockets then self.websockets = {} end
+		self.websockets[websocket.source] = websocket
+		return self
+	end
 	
 	caddy.config.websites[website.hostname .. ':' .. website.port]=website
 	return website
@@ -131,6 +149,12 @@ function caddy.generate_config(website)
 			config = config .. "\t\theader_upstream X-Forwarded-Proto {scheme}\n"
 			config = config .. "\t}\n"
 
+		end
+	end
+	if website.websockets then
+		for source, rewrite in pairsByKeys(website.websockets) do
+			debug_print('caddy.generate_config', "Websocket " .. source)
+			config = config .. "\twebsocket " .. source .. " " .. rewrite.target .. "\n"
 		end
 	end
 	if caddy.config.fastcgi then
