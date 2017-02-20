@@ -18,5 +18,6 @@ while [ $END -gt $(date +"%s") ]; do
 	fi
 done
 
+../examples/nat64-gateway.lua stop || exit 1
 echo "Tests complete."
 exit 0

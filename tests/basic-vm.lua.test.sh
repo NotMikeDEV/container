@@ -18,5 +18,6 @@ ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $IPv4 exit 0 >/dev/null 2>&1 ||
 echo "SSH $IPv6"
 ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $IPv6 exit 0 >/dev/null 2>&1 || exit 1
 
+../examples/basic-vm.lua stop || exit 1
 echo "Tests complete."
 exit 0
