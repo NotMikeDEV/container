@@ -20,6 +20,12 @@ function bind:AllowRecursion(ip)
 	bind.allow_recursion[ip] = ip
 end
 
+---Enable RRL.
+--@param qps int
+function bind:RRL(qps)
+	bind.rrl = qps
+end
+
 ---Zone file.
 --@field domain string The domain name.
 --@field type string 'master' or 'slave'.
@@ -84,12 +90,16 @@ function apply_config()
 		debug_print('apply_config', "DNS64 Prefix " .. bind.nat64_prefix)
 		config[#config+1] = 'dns64 ' .. bind.nat64_prefix .. "{ break-dnssec yes; };"
 	end
-	
+	if bind.rrl then
+		debug_print('apply_config', "RRL " .. bind.rrl)
+		config[#config+1] = "rate-limit { responses-per-second " .. bind.rrl .. "; };"
+	end
+
 	local config_options = ""
 	for _, option in pairs(config) do
 		config_options = config_options .. option .. "\n";
 	end
-	config_options = "options {\n" .. config_options .. "\n};\n"
+	config_options = "options {\n" .. config_options .. "};\n"
 	
 	if bind.zones then for _, zone in pairs(bind.zones) do
 		debug_print('apply_config', "Zone " .. zone.domain)
