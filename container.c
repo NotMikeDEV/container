@@ -359,19 +359,54 @@ int start(void* args)
 	child_wait("start");
 	setsid();
 	unlink("../.console");
-	if (mkfifo("../.console", 0755) < 0)
+
+	int fdm, fds;
+	fdm = posix_openpt(O_RDWR);
+	if (fdm < 0)
 	{
-		printf("mkfifo() failed %u %s.\n", errno, strerror(errno));
-		RETURN_ERROR;
+		fprintf(stderr, "Error %d on posix_openpt()\n", errno);
+		return 1;
 	}
-	if (( fd = open("../.console", O_RDWR )) < 0)
+
+	int rc = grantpt(fdm);
+	if (rc != 0)
 	{
-		printf("open fifo failed %u %s.\n", errno, strerror(errno));
-		RETURN_ERROR;
+		fprintf(stderr, "Error %d on grantpt()\n", errno);
+		return 1;
 	}
-	dup2(fd, 1);
-	dup2(fd, 2);
-	system("cat ../.console >> ../.log &");
+
+	rc = unlockpt(fdm);
+	if (rc != 0)
+	{
+		fprintf(stderr, "Error %d on unlockpt()\n", errno);
+		return 1;
+	}
+
+	if (fork() > 0)
+	{
+		FILE *f;
+		char buff[10024];
+		int bytes;
+		f = fopen("../.console", "wb");
+		if (!f)
+		{
+			printf("Error opening console.\n");
+			exit(0);
+		}
+		while ((bytes = read(fdm, buff, sizeof(buff) - 1)) > 0)
+		{
+			fwrite(buff, 1, bytes, f);
+			fflush(f);
+		}
+		close(fdm);
+		fclose(f);
+		exit(0);
+	}
+	fds = open(ptsname(fdm), O_RDWR);
+	dup2(fds, 0);
+	dup2(fds, 1);
+	dup2(fds, 2);
+	close(fdm);
 
 	int ret = init_environment(L, 0);
 	if (ret)
@@ -441,7 +476,6 @@ int start(void* args)
 			dup2(csock, 0);
 			dup2(csock, 1);
 			dup2(csock, 2);
-			close(csock);
 			char* args[] = {"bash",NULL};
 			ret = lua_exec_callback("shell", L);
 			close(0);
@@ -585,7 +619,7 @@ void sig_handler(int sig)
 			kill(container_pid, sig);
 			if (sig == SIGINT)
 			{
-				kill(container_pid, SIGTERM);
+				kill(container_pid, SIGKILL);
 			}
 		}
 	}
