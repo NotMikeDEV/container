@@ -22,7 +22,22 @@ function install_container()
 end
 
 function apply_config()
-	local PHPINI = "[PHP]\nexpose_php = Off\n"
+	local PHPINI = "[PHP]\n"
+	if php.debug then
+		PHPINI = PHPINI .. [[
+engine=On
+expose_php = On
+display_errors = On
+display_startup_errors = On
+]]
+	else
+		PHPINI = PHPINI .. [[
+engine=On
+expose_php=off
+display_errors = Off
+display_startup_errors = Off
+]]	
+	end
 	PHPINI = PHPINI .. "short_open_tag = " .. php.short_open_tag .."\n"
 	PHPINI = PHPINI .. "output_buffering = " .. php.output_buffering .."\n"
 	PHPINI = PHPINI .. "zlib.output_compression = " .. php.output_compression .."\n"
@@ -32,7 +47,6 @@ function apply_config()
 	PHPINI = PHPINI .. "upload_max_filesize = " .. php.upload_max_filesize .."\n"
 	PHPINI = PHPINI .. "max_file_uploads = " .. php.max_file_uploads .."\n"
 	PHPINI = PHPINI .. [[
-engine = On
 asp_tags = Off
 precision = 14
 implicit_flush = Off
@@ -43,8 +57,6 @@ disable_classes =
 zend.enable_gc = On
 max_execution_time = 30
 max_input_time = 60
-display_errors = Off
-display_startup_errors = Off
 log_errors = On
 log_errors_max_len = 1024
 ignore_repeated_errors = Off
