@@ -30,7 +30,7 @@ function rsync:AddServer(port)
 	--@param rsyncdir
 	--@returns rsyncdir
 	--@usage local rsyncserver = rsync:AddServer(9999)
-	-- rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
+	--rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
 	function rsyncserver:AddDir(rsyncdir)
 		if not rsyncdir.users then rsyncdir.users = {} end
 		---Add User to RSync directory.
