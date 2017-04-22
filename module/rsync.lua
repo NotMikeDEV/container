@@ -30,15 +30,15 @@ function rsync:AddServer(port)
 	--@param rsyncdir
 	--@returns rsyncdir
 	--@usage local rsyncserver = rsync:AddServer(9999)
-	--rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
+	-- rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
 	function rsyncserver:AddDir(rsyncdir)
 		if not rsyncdir.users then rsyncdir.users = {} end
 		---Add User to RSync directory.
 		--@param rsyncuser
 		--@returns rsyncuser
 		--@usage local rsyncserver = rsync:AddServer(9999)
-		--local ServerDir = rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
-		--local ServerDir:AddUser{username='test', password='test'}
+		-- local ServerDir = rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
+		-- local ServerDir:AddUser{username='test', password='test'}
 		function rsyncdir:AddUser(rsyncuser)
 			self.users[rsyncuser.username] = rsyncuser
 		end
