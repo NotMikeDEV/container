@@ -22,18 +22,23 @@ rsync={
 ---Add a new RSync Server.
 --@param port integer
 --@return rsyncserver
---@usage local WebSite = caddy:AddWebsite{hostname='hostname', root='/path/to/docroot'}
+--@usage local rsyncserver = rsync:AddServer(9999)
 function rsync:AddServer(port)
 --	if rsync.servers[port] then return rsync.servers[port] end
 	local rsyncserver = {port=port, dirs={}}
 	---Add Directory to RSync server.
 	--@param rsyncdir
 	--@returns rsyncdir
+	--@usage local rsyncserver = rsync:AddServer(9999)
+	--rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
 	function rsyncserver:AddDir(rsyncdir)
 		if not rsyncdir.users then rsyncdir.users = {} end
 		---Add User to RSync directory.
 		--@param rsyncuser
 		--@returns rsyncuser
+		--@usage local rsyncserver = rsync:AddServer(9999)
+		--local ServerDir = rsyncserver:AddDir{path='/test', localpath='/tmp/test'}
+		--local ServerDir:AddUser{username='test', password='test'}
 		function rsyncdir:AddUser(rsyncuser)
 			self.users[rsyncuser.username] = rsyncuser
 		end
