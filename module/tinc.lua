@@ -10,9 +10,9 @@ tinc = {}
 --Tinc:AddIP{ipv4='10.0.0.1', ipv6='fc00::1', nat=true}
 function tinc:AddInterface(interface)
 	if not tinc.interfaces then tinc.interfaces = {} end
-	---Add IP Address to interface.
+	---Add Local Address to host file.
 	--@see network:address
-	--@param address table {ipv4='10.0.0.1', ipv6='fd00::1', nat=false, proxyarp='eth0'}
+	--@param address table {hostname='server.example.net', ipv4='10.0.0.1', ipv6='fd00::1', nat=false, proxyarp='eth0'}
 	function interface:LocalAddress(address)
 		if not self.localaddresses then self.localaddresses = {} end
 		self.localaddresses[address] = address
