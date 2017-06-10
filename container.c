@@ -472,12 +472,26 @@ int start(void* args)
 		}
 		else if (csock != -1)
 		{
+			signal(SIGCHLD, SIG_IGN);
+			signal(SIGTERM, SIG_IGN);
+			signal(SIGKILL, SIG_IGN);
+			signal(SIGABRT, SIG_IGN);
+			signal(SIGINT, SIG_IGN);
+			signal(SIGUSR1, SIG_IGN);
+			signal(SIGUSR2, SIG_IGN);
 			close(shell_sock);
 			dup2(csock, 0);
 			dup2(csock, 1);
 			dup2(csock, 2);
-			char* args[] = {"bash",NULL};
-			ret = lua_exec_callback("shell", L);
+			char command[65536]={0};
+			short command_length=0;
+			recv(csock, &command_length, 2, 0);
+			if (command_length && command_length<(sizeof(command)-1))
+			    recv(csock, command, command_length, 0);
+			if (command_length && strlen(command))
+			    ret = system(command);
+			else
+			    ret = lua_exec_callback("shell", L);
 			close(0);
 			close(1);
 			close(2);
@@ -488,6 +502,7 @@ int start(void* args)
 	return 0;
 }
 
+char* shell_command="";
 int shell(void* args)
 {
 	lua_State *L = (lua_State*)args;
@@ -505,6 +520,9 @@ int shell(void* args)
 	{
 		perror("connect");
 	}
+	short shell_command_length=strlen(shell_command);
+	send(shell_sock, &shell_command_length, 2, 0);
+	send(shell_sock, shell_command, shell_command_length, 0);
 	while (1)
 	{
 		char* buff[1024];
@@ -547,7 +565,7 @@ void print_usage(const char* config_file)
 	printf("\tstart\tStarts the container\n");
 	printf("\tstop\tStops the container\n");
 	printf("\trestart\tRestarts the container\n");
-	printf("\tshell\tLaunches a shell inside the container environment\n");
+	printf("\tshell [\"cmd\"]\tLaunches a shell inside the container environment\n");
 }
 
 void RESUME(pid_t pid)
@@ -616,11 +634,10 @@ void sig_handler(int sig)
 	{
 		if (container_pid)
 		{
-			kill(container_pid, sig);
+			if (sig == SIGABRT || sig == SIGTERM || sig == SIGKILL)
+			    kill(container_pid, sig);
 			if (sig == SIGINT)
-			{
-				kill(container_pid, SIGKILL);
-			}
+			    kill(container_pid, SIGKILL);
 		}
 	}
 	if (sig == SIGABRT || sig == SIGTERM || sig == SIGKILL)
@@ -769,6 +786,8 @@ int main (int argc, char* argv[]) {
 	}
 	if (!ret && !strcmp(command, "shell"))
 	{
+		if (argc>3)
+		    shell_command = argv[3];
 		if (!is_running(L, 0))
 		{
 			printf("Error: Container not running.\n");
