@@ -2,8 +2,11 @@
 --Loading the caddy module automatically exports /var/www to the docroot directory and /root to the home directory.
 --The caddy object is also exposed under the name webserver.
 --@module caddy
-caddy={}
-caddy.config = {}
+caddy={
+    config = {
+        logfile='/var/log/caddy.log' -- Log Location.
+    }
+}
 
 ---Website configuration.
 --@field hostname string Hostname of website.
@@ -167,6 +170,11 @@ function caddy.generate_config(website)
 			config = config .. "\t}\n"
 		end
 	end
+        config = config .. "log " .. caddy.config.logfile .. " {\n"
+        config = config .. "\trotate_size 5\n"
+        config = config .. "\trotate_age  14\n"
+        config = config .. "\trotate_keep 20\n"
+        config = config .. "}\n"
 	return config
 end
 
