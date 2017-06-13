@@ -222,6 +222,7 @@ function background()
 end
 
 Mount{ path='/var/www/', type="map", source="docroot" }
+Mount{ path='/var/log', type="map", source="log"}
 Mount{ path='/root/', type="map", source="home" }
 
 if not webserver then webserver = caddy end
