@@ -17,7 +17,7 @@ if php.debug then php.error_reporting = "E_ALL" else php.error_reporting = "E_NO
 
 function install_container()
 	print("Installing PHP.")
-	install_package("php-fpm php-cli php-gd php-curl php-mysql php-odbc php-imap php-memcached php-ssh2 php-xdebug")
+	install_package("php-fpm php-cli php-gd php-curl php-mysql php-sqlite3 php-odbc php-imap php-memcached php-ssh2 php-xdebug")
 	return 0
 end
 
