@@ -4,20 +4,20 @@
 
 ---PHP Configuration
 php={
-	short_open_tag=     "Off",  --Default off.
-	output_buffering=   4096,   --Default buffer size, default 4096.
-	output_compression= "Off",  --Compress output buffer. Default off.
-	memory_limit=       "64M",  --PHP script memory limit. Default 64M.
-	post_max_size=      "128M", --Max POST Data size. Default 128M.
-	upload_max_filesize="128M", --Max total size of file uploads. Default 128M.
-	max_file_uploads=   30,     --Max number of files per POST. Default 30.
-        debug=              false,  --Debug Mode. Sets Error Reporting. Enables xdebug remote debugging. Default false.
+	short_open_tag		="Off",	--Default off.
+	output_buffering	=4096,	--Default buffer size, default 4096.
+	output_compression	="Off",	--Compress output buffer. Default off.
+	memory_limit		="64M",	--PHP script memory limit. Default 64M.
+	post_max_size		="128M",--Max POST Data size. Default 128M.
+	upload_max_filesize	="128M",--Max total size of file uploads. Default 128M.
+	max_file_uploads	=30,	--Max number of files per POST. Default 30.
+	debug			=false,	--Debug Mode. Sets Error Reporting. Enables xdebug remote debugging. Default false.
 }
 if php.debug then php.error_reporting = "E_ALL" else php.error_reporting = "E_NONE" end
 
 function install_container()
 	print("Installing PHP.")
-	install_package("php5-fpm php5-cli php5-gd php5-curl php5-sqlite php5-mysql php5-odbc php5-imap php5-mhash php5-memcached php5-ssh2 php5-xcache php5-xdebug")
+	install_package("php-fpm php-cli php-gd php-curl php-mysql php-odbc php-imap php-memcached php-ssh2 php-xdebug")
 	return 0
 end
 
