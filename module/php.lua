@@ -173,7 +173,7 @@ end
 
 function background()
 	print("Starting PHP.")
-	exec("/usr/sbin/php5-fpm")
+	exec("mkdir /run/php; /usr/sbin/php-fpm7.0 &")
 	return 0
 end
 
@@ -181,5 +181,5 @@ Mount{ path='/var/log/', type="map", source="log" }
 Mount{ path='/var/run/', type="map", source=".run" }
 Mount{ path='/var/lib/php5/sessions', type="tmpfs", size="512M" }
 
-if caddy then caddy:AddFastCGI{ext='php',socket='/var/run/php5-fpm.sock'} end
-if nginx then nginx:AddFastCGI{ext='php',socket='/var/run/php5-fpm.sock'} end
+if caddy then caddy:AddFastCGI{ext='php',socket='/run/php/php7.0-fpm.sock'} end
+if nginx then nginx:AddFastCGI{ext='php',socket='/run/php/php7.0-fpm.sock'} end
