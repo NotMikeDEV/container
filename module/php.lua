@@ -17,7 +17,7 @@ if php.debug then php.error_reporting = "E_ALL" else php.error_reporting = "E_NO
 
 function install_container()
 	print("Installing PHP.")
-	install_package("php-fpm php-cli php-gd php-curl php-mysql php-sqlite3 php-odbc php-imap php-memcached php-ssh2 php-xdebug")
+	install_package("php-fpm php-cli php-gd php-curl php-mysql php-sqlite3 php-odbc php-imap php-memcached php-ssh2 php-zip php-xml php-dom php-xdebug")
 	return 0
 end
 
@@ -179,7 +179,7 @@ end
 
 Mount{ path='/var/log/', type="map", source="log" }
 Mount{ path='/var/run/', type="map", source=".run" }
-Mount{ path='/var/lib/php5/sessions', type="tmpfs", size="512M" }
+Mount{ path='/var/lib/php/sessions', type="tmpfs", size="512M" }
 
 if caddy then caddy:AddFastCGI{ext='php',socket='/run/php/php7.0-fpm.sock'} end
 if nginx then nginx:AddFastCGI{ext='php',socket='/run/php/php7.0-fpm.sock'} end
