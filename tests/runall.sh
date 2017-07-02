@@ -3,13 +3,11 @@
 run_test() {
 	TEMPFILE=$(tempfile)
 	echo -n "$@"
-	$@ > $TEMPFILE 2>&1
+	$@
 	RESULT=$?
 	if [ ! $RESULT == 0 ]; then
 		echo
-		cat $TEMPFILE
-		rm -f $TEMPFILE
-		echo "$@ Failed. Returned $RESULT"
+		echo "$@ Failed."
 		cd $ORIGINAL_PATH
 		exit 1
 	fi
