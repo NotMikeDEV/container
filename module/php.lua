@@ -173,7 +173,9 @@ end
 
 function background()
 	print("Starting PHP.")
-	exec("mkdir /run/php; /usr/sbin/php-fpm7.0 &")
+	exec("chmod 0777 /var/lib/php/sessions -R")
+	exec("mkdir -p /run/php")
+	exec("/usr/sbin/php-fpm7.0 &")
 	return 0
 end
 
