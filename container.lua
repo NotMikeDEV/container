@@ -252,8 +252,8 @@ debian.arch = exec("uname -m", true)
 debian.arch = string.gsub(debian.arch, "\n", "")
 if debian.arch:find("x86_64") then debian.arch = "amd64" end
 if debian.arch:find("i686") then debian.arch = "i386" end
-debian.cache_file = "/usr/local/container/debian.cache." .. debian.arch;
-debian.cache_URL = "http://cache.linuxship.net/debian.cache." .. debian.arch;
+debian.cache_file = "/usr/local/container/debian." .. debian.arch .. ".tar.gz";
+debian.cache_URL = "http://cache.linuxship.net/debian." .. debian.arch .. ".tar.gz";
 
 function build()
 	debug_print("build", "EXEC")
@@ -269,14 +269,14 @@ function build()
 		exec_or_die("debootstrap  --include=iproute2,net-tools stable . " .. debian.mirror)
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
-			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -jcf ../.debian.cache *")
+			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -zcf ../.debian.cache *")
 			exec_or_die("rm -f /var/cache/debian.cache && mv ../.debian.cache " .. debian.cache_file)
 		end
 		chdir("../.jail")
 		exec_or_die("rm -rf ../.debootstrap")
 	end
 	print("Installing debian from cache...")
-	exec("tar -jxf " .. debian.cache_file)
+	exec("tar -zxf " .. debian.cache_file)
 	if not isFile("etc/debian_version") then die("Error extracting debian image.") end
 	print("Updating...")
 	exec_or_die("chroot . apt-get update; chroot . apt-get -y dist-upgrade")
