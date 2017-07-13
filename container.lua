@@ -308,7 +308,7 @@ function mount_container()
 
 	exec_or_die("mkdir -p .jail && mkdir -p .filesystem && mount -n --make-rprivate --make-private -o rw --bind .filesystem .jail")
 	exec_or_die("mkdir -p .jail/proc && mount -t proc proc .jail/proc")
-	exec_or_die("mkdir -p .jail/sys && mount --make-rprivate --make-private --bind /sys .jail/sys")
+	exec_or_die("mkdir -p .jail/sys && mount -t sysfs /sys .jail/sys")
 	exec_or_die("mkdir -p .jail/dev && mount -t devtmpfs udev .jail/dev")
 	exec_or_die("mkdir -p .jail/dev/pts && mount -t devpts devpts .jail/dev/pts")
 	for target, mount in pairsByKeys(filesystems) do
