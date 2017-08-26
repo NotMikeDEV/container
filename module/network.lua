@@ -93,7 +93,7 @@ function init_network_host(pid)
 		if interface.type == "ethernet" then
 			if not exec("ip link add name " .. NIC .. " type veth peer name " .. interface.name) then return 1 end
 			if not exec("ifconfig " .. NIC .. " up") then return 1 end
-			if not exec("arp -i " .. NIC .. " -Ds 100.64.0.0 " .. NIC .. " netmask 255.255.255.255 pub || ip -4 addr add 100.64.0.0/32 dev " .. NIC .. " || ip addr add 100.64.0.0/32 dev " .. NIC) then return 1 end
+			if not exec("ip neigh add proxy 100.64.0.0 dev " .. NIC .. " || arp -i " .. NIC .. " -Ds 100.64.0.0 " .. NIC .. " netmask 255.255.255.255 pub || ip -4 addr add 100.64.0.0/32 dev " .. NIC .. " || ip addr add 100.64.0.0/32 dev " .. NIC) then return 1 end
 			if not exec("ip -6 addr add fe80::1/128 dev " .. NIC .." || ip addr add fe80::1/128 dev " .. NIC) then return 1 end
 			if not exec("ip link set dev " .. interface.name .. " netns " .. string.format("%.0f", pid)) then return 1 end
 			local int_v4=nil
@@ -104,7 +104,7 @@ function init_network_host(pid)
 					if not exec("ip -4 route replace " .. addr.ipv4 .. "/32 dev " .. NIC .. " || ip route replace " .. addr.ipv4 .. "/32 dev " .. NIC) then return 1 end
 					exec("iptables -t nat -D POSTROUTING -s " .. addr.ipv4 .. " -j MASQUERADE 2>/dev/null")
 					if (addr.nat) then if not exec("iptables -t nat -I POSTROUTING -s " .. addr.ipv4 .. " -m state --state NEW -j MASQUERADE") then return 1 end end
-					if (addr.proxyarp) then exec("arp -i " .. addr.proxyarp .. " -Ds " .. addr.ipv4 .. " " .. addr.proxyarp .. " netmask 255.255.255.255 pub") end
+					if (addr.proxyarp) then exec("ip neigh add proxy " .. addr.ipv4 .. " dev " .. addr.proxyarp) end
 				end
 				if addr.ipv6 then
 					debug_print('init_network_host', "add IPv6 address " .. addr.ipv6)
