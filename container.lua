@@ -247,7 +247,7 @@ function need_build()
 end
 
 debian = {}
-debian.mirror = "http://debian.linuxship.net/debian";
+debian.mirror = "http://deb.debian.org/debian";
 debian.arch = exec("uname -m", true)
 debian.arch = string.gsub(debian.arch, "\n", "")
 if debian.arch:find("x86_64") then debian.arch = "amd64" end
