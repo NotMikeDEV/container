@@ -103,6 +103,7 @@ end
 
 function run()
 	print("Starting MySQL.")
+	exec("mkdir -p /var/run/mysqld && chmod 0777 /var/run/mysqld")
 	exec("mysqld &")
 	return 0
 end
