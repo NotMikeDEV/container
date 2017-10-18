@@ -43,7 +43,7 @@ function apply_config()
 			wp_config = wp_config .. "define('DB_HOST', 'localhost');\n"
 			wp_config = wp_config .. "define('DB_CHARSET', 'utf8');\n"
 			wp_config = wp_config .. "define('DB_COLLATE', '');\n"
-
+			wp_config = wp_config .. "define('UPLOADS', 'uploads');\n"
 			wp_config = wp_config .. "define('AUTH_KEY',         '" .. salt .. "auth');\n"
 			wp_config = wp_config .. "define('SECURE_AUTH_KEY',  '" .. salt .. "secauth');\n"
 			wp_config = wp_config .. "define('LOGGED_IN_KEY',    '" .. salt .. "login');\n"
