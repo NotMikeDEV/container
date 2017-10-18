@@ -165,9 +165,9 @@ soap.wsdl_cache_limit = 5
 		PHPINI = PHPINI .. "xdebug.remote_host=localhost\n"
 		PHPINI = PHPINI .. "xdebug.remote_port=9000\n"
 	end
-	write_file("./etc/php5/fpm/php.ini", PHPINI)
-	write_file("./etc/php5/cli/php.ini", PHPINI)
-	write_file("./etc/php5/cgi/php.ini", PHPINI)
+	write_file("./etc/php/7.0/fpm/php.ini", PHPINI)
+	write_file("./etc/php/7.0/cli/php.ini", PHPINI)
+	write_file("./etc/php/7.0/cgi/php.ini", PHPINI)
 	return 0
 end
 
