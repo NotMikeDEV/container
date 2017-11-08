@@ -152,7 +152,7 @@ function apply_config()
 	return 0
 end
 
-function run()
+function background()
 	if not nginx.config.websites then return 0 end
 	print("Starting Nginx.")
 	exec_or_die("/usr/sbin/nginx")
