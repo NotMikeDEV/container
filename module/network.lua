@@ -102,15 +102,15 @@ function init_network_host(pid)
 					int_v4 = addr.ipv4
 					debug_print('init_network_host', "add IPv4 address " .. addr.ipv4)
 					if not exec("ip -4 route replace " .. addr.ipv4 .. "/32 dev " .. NIC .. " || ip route replace " .. addr.ipv4 .. "/32 dev " .. NIC) then return 1 end
-					exec("iptables -t nat -D POSTROUTING -s " .. addr.ipv4 .. " -j MASQUERADE 2>/dev/null")
-					if (addr.nat) then if not exec("iptables -t nat -I POSTROUTING -s " .. addr.ipv4 .. " -m state --state NEW -j MASQUERADE") then return 1 end end
+					exec("iptables -t nat -D POSTROUTING -m state --state NEW -s " .. addr.ipv4 .. " -j MASQUERADE 2>/dev/null")
+					if (addr.nat) then if not exec("iptables -t nat -I POSTROUTING -m state --state NEW -s " .. addr.ipv4 .. " -m state --state NEW -j MASQUERADE") then return 1 end end
 					if (addr.proxyarp) then exec("ip neigh add proxy " .. addr.ipv4 .. " dev " .. addr.proxyarp) end
 				end
 				if addr.ipv6 then
 					debug_print('init_network_host', "add IPv6 address " .. addr.ipv6)
 					if not exec("ip -6 route replace " .. addr.ipv6 .. "/128 dev " .. NIC .. " || ip route replace " .. addr.ipv6 .. "/128 dev " .. NIC) then return 1 end
-					exec("ip6tables -t nat -D POSTROUTING -s " .. addr.ipv6 .. " -j MASQUERADE 2>/dev/null")
-					if (addr.nat) then if not exec("ip6tables -t nat -I POSTROUTING -s " .. addr.ipv6 .. " -m state --state NEW -j MASQUERADE") then return 1 end end
+					exec("ip6tables -t nat -D POSTROUTING -m state --state NEW -s " .. addr.ipv6 .. " -j MASQUERADE 2>/dev/null")
+					if (addr.nat) then if not exec("ip6tables -t nat -I POSTROUTING -m state --state NEW -s " .. addr.ipv6 .. " -m state --state NEW -j MASQUERADE") then return 1 end end
 					if (addr.proxyarp) then exec("ip -6 neigh add proxy " .. addr.ipv6 .. " dev " .. addr.proxyarp .. " || ip neigh add proxy " .. addr.ipv6 .. " dev " .. addr.proxyarp) end
 				end
 			end end
