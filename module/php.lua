@@ -175,7 +175,7 @@ function run()
 	print("Starting PHP.")
 	exec("chmod 0777 /var/lib/php/sessions -R")
 	exec("mkdir -p /run/php")
-	exec("/usr/sbin/php-fpm7.0 & sleep 5")
+	exec("/usr/sbin/php-fpm7.0 &")
 	return 0
 end
 
