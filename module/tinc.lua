@@ -6,13 +6,13 @@ tinc = {}
 --@see network:interface
 --@param interface
 --@return interface
---@usage local Tinc = tinc:AddInterface{name='net0'}
+--@usage local Tinc = tinc:AddInterface{name='net0', tincport='888', tincmode='router'}
 --Tinc:AddIP{ipv4='10.0.0.1', ipv6='fc00::1', nat=true}
 function tinc:AddInterface(interface)
 	if not tinc.interfaces then tinc.interfaces = {} end
 	---Add Local Address to host file.
 	--@see network:address
-	--@param address table {hostname='server.example.net', ipv4='10.0.0.1', ipv6='fd00::1', nat=false, proxyarp='eth0'}
+	--@param address table {hostname='server.example.net', ipv4='10.0.0.1', ipv6='fd00::1'}
 	function interface:LocalAddress(address)
 		if not self.localaddresses then self.localaddresses = {} end
 		self.localaddresses[address] = address
@@ -66,6 +66,7 @@ function apply_config()
 		local tinc_conf = "Name = " .. interface.name .. "\n"
 		tinc_conf = tinc_conf .. "Interface = " .. interface.name .. "\n"
 		tinc_conf = tinc_conf .. "Port = " .. interface.tincport .. "\n"
+		if interface.tincmode then tinc_conf = tinc_conf .. "Mode = " .. interface.tincmode .. "\n" end
 		debug_print('apply_config', "Searching connectable hosts.")
 		tinc_conf = tinc_conf .. exec("cd " .. tincpath .. "/hosts;for host in `grep -l 'Address' *`; do echo ConnectTo = $host; done", true)
 		write_file(tincpath .. 'tinc.conf', tinc_conf)
@@ -129,8 +130,8 @@ function run()
 		if interface.tincpath then tincpath = interface.tincpath end
 
 		debug_print('run', "Starting tinc.")
-		exec("tincd -k -c " .. tincpath .. " >/dev/null 2>&1")
-		if not exec("tincd -D -c " .. tincpath .. " 2>/dev/null &") then return 1 end
+		exec("tincd --pidfile=" .. tincpath .. "/tinc.pid -k -c " .. tincpath .. " >/dev/null 2>&1")
+		if not exec("tincd --pidfile=" .. tincpath .. "/tinc.pid -D -c " .. tincpath .. " 2>/dev/null &") then return 1 end
 
 		debug_print('run', "Waiting for interface.")
 		local x = os.time()
