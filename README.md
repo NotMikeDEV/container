@@ -8,9 +8,9 @@ Tinc networking requires tinc on the host.
 In theory if you have debootstrap and other required tools it should work on any linux kernel with namespace support, but only Debian is supported.
 
 ## Debian Install
-	apt install -y build-essential git debootstrap libreadline-dev tinc
-	git clone https://github.com/notmike-uk/container.git
-	cd container
+	apt install -y build-essential git debootstrap libreadline-dev tinc && \
+	git clone https://github.com/notmike-uk/container.git && \
+	cd container && \
 	make install
 
 ## Docs
