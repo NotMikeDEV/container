@@ -9,7 +9,7 @@ In theory if you have debootstrap and other required tools it should work on any
 
 ## Debian Install
 	apt install -y build-essential git debootstrap libreadline-dev tinc && \
-	git clone https://github.com/notmike-uk/container.git && \
+	git clone https://github.com/NotMikeUK/container.git && \
 	cd container && \
 	make install
 
