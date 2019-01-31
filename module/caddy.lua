@@ -191,10 +191,7 @@ function install_container()
 	end
 	debug_print('install_container', caddyarch)
 
-	exec_or_die("wget -O /usr/src/caddy/caddy.tar.gz http://cache.linuxship.net/caddy/caddy-" .. caddyarch .. ".tar.gz" ..
-		"|| wget -O /usr/src/caddy/caddy.tar.gz \"https://caddyserver.com/download/linux/" .. caddyarch .. "\"")
-	exec_or_die("cd /usr/src/caddy; tar -zxf caddy.tar.gz")
-	exec_or_die("cp /usr/src/caddy/caddy /usr/bin")
+	exec_or_die("wget -qO- https://getcaddy.com | bash -s personal http.git")
 	return 0
 end
 
@@ -217,7 +214,7 @@ end
 function background()
 	if not caddy.config.websites then return 0 end
 	print("Starting Caddy.")
-	exec("HOME=/root /usr/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile")
+	exec("HOME=/root /usr/local/bin/caddy -agree -email fake@user.com -conf /etc/Caddyfile")
 	return 0
 end
 
