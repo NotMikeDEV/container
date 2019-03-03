@@ -253,15 +253,9 @@ debian.arch = string.gsub(debian.arch, "\n", "")
 if debian.arch:find("x86_64") then debian.arch = "amd64" end
 if debian.arch:find("i686") then debian.arch = "i386" end
 debian.cache_file = "/usr/local/container/debian." .. debian.arch .. ".tar.gz";
-debian.cache_URL = "http://cache.linuxship.net/debian." .. debian.arch .. ".tar.gz";
 
 function build()
 	debug_print("build", "EXEC")
-	if not isFile(debian.cache_file) then
-		print("Downloading debian cache...")
-		local suffix = '.' .. os.time() .. "." .. math.random(10000,99999)
-		exec("( wget -c -N " .. debian.cache_URL .. " -O " .. debian.cache_file .. suffix .. " && mv " .. debian.cache_file .. suffix .. " " .. debian.cache_file .. " ) || rm -f " .. debian.cache_file .. suffix)
-	end
 	if not isFile(debian.cache_file) then
 		print("Building debian cache...")
 		mkdir("../.debootstrap")
