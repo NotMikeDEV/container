@@ -191,7 +191,7 @@ function install_container()
 	end
 	debug_print('install_container', caddyarch)
 
-	exec_or_die("wget -qO- https://getcaddy.com | bash -s personal http.git")
+	exec_or_die("wget -qO- https://getcaddy.com | bash -s personal http.git,tls.dns.cloudflare")
 	return 0
 end
 
