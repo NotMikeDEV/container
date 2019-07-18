@@ -260,7 +260,7 @@ function build()
 		print("Building debian cache...")
 		mkdir("../.debootstrap")
 		chdir("../.debootstrap")
-		exec_or_die("debootstrap  --include=iproute2,net-tools stable . " .. debian.mirror)
+		exec_or_die("debootstrap  --include=iproute2,net-tools,wget stable . " .. debian.mirror)
 		if isFile("etc/debian_version") then
 			print("Saving cache...")
 			exec_or_die("tar --exclude='dev' --exclude='sys' --exclude='proc' -zcf ../.debian.cache *")
