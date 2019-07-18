@@ -150,6 +150,7 @@ function caddy.generate_config(website)
 			config = config .. "\t\theader_upstream X-Real-IP {remote}\n"
 			config = config .. "\t\theader_upstream X-Forwarded-For {remote}\n"
 			config = config .. "\t\theader_upstream X-Forwarded-Proto {scheme}\n"
+			config = config .. "\t\twebsocket\n"
 			config = config .. "\t}\n"
 
 		end
