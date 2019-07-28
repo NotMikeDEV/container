@@ -175,7 +175,7 @@ function run()
 	print("Starting PHP.")
 	exec("chmod 0777 /var/lib/php/sessions -R")
 	exec("mkdir -p /run/php")
-	exec("/usr/sbin/php-fpm7.0 &")
+	exec("/usr/sbin/php-fpm7.3 &")
 	return 0
 end
 
@@ -184,5 +184,5 @@ Mount{ path='/var/run/', type="map", source=".run" }
 Mount{ path='/var/lib/php/sessions', type="tmpfs", size="512M" }
 Mount{ path='/run/php/', type="tmpfs", size="256M" }
 
-if caddy then caddy:AddFastCGI{ext='php',socket='/run/php/php7.0-fpm.sock'} end
-if nginx then nginx:AddFastCGI{ext='php',socket='unix:/run/php/php7.0-fpm.sock'} end
+if caddy then caddy:AddFastCGI{ext='php',socket='/run/php/php7.3-fpm.sock'} end
+if nginx then nginx:AddFastCGI{ext='php',socket='unix:/run/php/php7.3-fpm.sock'} end
