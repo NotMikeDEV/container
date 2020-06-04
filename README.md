@@ -18,7 +18,7 @@ Run 'make doc' to compile the documentation using LDoc.
 
 Run 'make doc_server' to launch a web server on port 8092 containing the documentation.
 
-Or browse the online documentation at https://notmikeuk.github.io/container-doc/
+Or browse the online documentation at https://github.notmikeuk.dev/container-doc/
 
 ## Quick Overview
 This is basically a glorified wrapper around the linux namespaces functionality, which is pretty much “chroot on steroids”.
